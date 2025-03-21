@@ -97,7 +97,7 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     toJSON() {
-        return {class: "Player", name: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies};
+        return {class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies};
     }
 }
 
@@ -105,29 +105,37 @@ function enemyGenerator(game: Game) {
     let wave: number;
     switch (game.level) {
         case 0:
-            wave = (100 - game.timer.timeLeft) % 10
-            if (wave > lvl0Enemies.length)
-                wave = lvl0Enemies.length;
+            wave = Math.floor((100 - game.timer.timeLeft) / 10);
+            if (wave >= lvl0Enemies.length)
+                wave = lvl0Enemies.length - 1;
             return (new Enemy(lvl0Enemies[wave].type, lvl0Enemies[wave].hp, lvl0Enemies[wave].speed, lvl0Enemies[wave].damages));
         case 1:
-            wave = (100 - game.timer.timeLeft) % 10
-            if (wave > lvl1Enemies.length)
-                wave = lvl1Enemies.length;
+            wave = Math.floor((100 - game.timer.timeLeft) / 10);
+            if (wave >= lvl1Enemies.length)
+                wave = lvl1Enemies.length - 1;
             return (new Enemy(lvl1Enemies[wave].type, lvl1Enemies[wave].hp, lvl1Enemies[wave].speed, lvl1Enemies[wave].damages));
         case 2:
-            wave = (600 - game.timer.timeLeft) % 10
-            if (wave > lvl2Enemies.length)
-                wave = lvl2Enemies.length;
+            wave = Math.floor((600 - game.timer.timeLeft) / 10);
+            if (wave >= lvl2Enemies.length)
+                wave = lvl2Enemies.length - 1;
             return (new Enemy(lvl2Enemies[wave].type, lvl2Enemies[wave].hp, lvl2Enemies[wave].speed, lvl2Enemies[wave].damages));
         default:
             return (new Enemy(lvl0Enemies[0].type, lvl0Enemies[0].hp, lvl0Enemies[0].speed, lvl0Enemies[0].damages));
     }
 }
 
+function enemySpawner(player1: Player, player2: Player, game: Game) {
+    if (game.start && game.timer.timeLeft % 10 === 5) {
+        player1.addEnemy(enemyGenerator(game));
+        player2.addEnemy(enemyGenerator(game));
+    }
+    setTimeout(() => enemySpawner(player1, player2, game), 1000);
+}
+
 function enemyLoop (player1: Player, player2: Player, game: Game) {
     player1.enemies.forEach(enemy => {
         enemy.pos += enemy.speed;
-        if (enemy.pos >= 1000) {
+        if (enemy.pos >= 1440) {
             player1.hp -= enemy.damages;
             enemy.alive = false;
         }
@@ -139,7 +147,7 @@ function enemyLoop (player1: Player, player2: Player, game: Game) {
     player1.clearDeadEnemies();
     player2.enemies.forEach(enemy => {
         enemy.pos += enemy.speed;
-        if (enemy.pos >= 1000) {
+        if (enemy.pos >= 1440) {
             player2.hp -= enemy.damages;
             enemy.alive = false;
         }
@@ -184,6 +192,7 @@ wss.on("connection", (ws) => {
     game.timer.start();
     gameInit(player1, player2, game);
     gameLoop(player1, player2, game);
+    enemySpawner(player1, player2, game);
     ws.on("close", () => {
         clearInterval(intervalId);
         console.log("Client disconnected");
