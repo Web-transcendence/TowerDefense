@@ -1,0 +1,5 @@
+[
+  { "type": "poop", "hp": 30, "speed": 1, "damages": 1 },
+  { "type": "slime", "hp": 60, "speed": 2, "damages": 1 },
+  { "type": "bat", "hp": 100, "speed": 2, "damages": 1 }
+]
