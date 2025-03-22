@@ -1,0 +1,5 @@
+[
+  { "type": "fire", "speed": 10, "damages" : 12, "area": true, "effect": "none" },
+  { "type": "ice", "speed": 8, "damages" : 10, "area": true, "effect": "slow" },
+  { "type": "earth", "speed": 10, "damages" : 18, "area": false, "effect": "none" }
+]

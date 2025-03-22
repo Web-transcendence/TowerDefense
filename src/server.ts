@@ -50,6 +50,57 @@ class Timer {
     }
 }
 
+class Player {
+    name: string;
+    hp: number;
+    mana: number;
+    enemies: Enemy[];
+    deck: Tower[];
+    board: Board[];
+    constructor(name: string) {
+        this.name = name;
+        this.hp = 3;
+        this.mana = 210;
+        this.enemies = [];
+        this.deck = [];
+        this.board = [];
+    }
+    addEnemy(enemy: Enemy) {
+        this.enemies.push(enemy);
+    }
+    clearDeadEnemies() {
+        this.enemies = this.enemies.filter(enemy => enemy.alive);
+    }
+    toJSON() {
+        return {class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies};
+    }
+}
+
+class Tower {
+    type: string;
+    speed: number;
+    damages: number;
+    area: boolean;
+    effect: string;
+    level: number = 1;
+    constructor(type: string, speed: number, damages: number, area: boolean, effect: string) {
+        this.type = type;
+        this.speed = speed;
+        this.damages = damages;
+        this.area = area;
+        this.effect = effect;
+    }
+}
+
+class Board {
+    pos: number;
+    tower: Tower;
+    constructor(pos: number, tower: Tower) {
+        this.tower = tower;
+        this.pos = pos;
+    }
+}
+
 class Enemy {
     type: string;
     hp: number;
@@ -78,28 +129,6 @@ function loadEnemies(filePath: string): Enemy[] {
 let lvl0Enemies = loadEnemies(path.join(__dirname, "../resources/lvl0_enemies.json"));
 let lvl1Enemies = loadEnemies(path.join(__dirname, "../resources/lvl1_enemies.json"));
 let lvl2Enemies = loadEnemies(path.join(__dirname, "../resources/lvl2_enemies.json"));
-
-class Player {
-    name: string;
-    hp: number;
-    mana: number;
-    enemies: Enemy[];
-    constructor(name: string) {
-        this.name = name;
-        this.hp = 3;
-        this.mana = 210;
-        this.enemies = [];
-    }
-    addEnemy(enemy: Enemy) {
-        this.enemies.push(enemy);
-    }
-    clearDeadEnemies() {
-        this.enemies = this.enemies.filter(enemy => enemy.alive);
-    }
-    toJSON() {
-        return {class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies};
-    }
-}
 
 function enemyGenerator(game: Game) {
     let wave: number;

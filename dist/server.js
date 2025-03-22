@@ -40,6 +40,41 @@ class Timer {
         }
     }
 }
+class Player {
+    constructor(name) {
+        this.name = name;
+        this.hp = 3;
+        this.mana = 210;
+        this.enemies = [];
+        this.deck = [];
+        this.board = [];
+    }
+    addEnemy(enemy) {
+        this.enemies.push(enemy);
+    }
+    clearDeadEnemies() {
+        this.enemies = this.enemies.filter(enemy => enemy.alive);
+    }
+    toJSON() {
+        return { class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies };
+    }
+}
+class Tower {
+    constructor(type, speed, damages, area, effect) {
+        this.level = 1;
+        this.type = type;
+        this.speed = speed;
+        this.damages = damages;
+        this.area = area;
+        this.effect = effect;
+    }
+}
+class Board {
+    constructor(pos, tower) {
+        this.tower = tower;
+        this.pos = pos;
+    }
+}
 class Enemy {
     constructor(type, hp, speed, damages) {
         this.type = type;
@@ -60,23 +95,6 @@ function loadEnemies(filePath) {
 let lvl0Enemies = loadEnemies(path.join(__dirname, "../resources/lvl0_enemies.json"));
 let lvl1Enemies = loadEnemies(path.join(__dirname, "../resources/lvl1_enemies.json"));
 let lvl2Enemies = loadEnemies(path.join(__dirname, "../resources/lvl2_enemies.json"));
-class Player {
-    constructor(name) {
-        this.name = name;
-        this.hp = 3;
-        this.mana = 210;
-        this.enemies = [];
-    }
-    addEnemy(enemy) {
-        this.enemies.push(enemy);
-    }
-    clearDeadEnemies() {
-        this.enemies = this.enemies.filter(enemy => enemy.alive);
-    }
-    toJSON() {
-        return { class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies };
-    }
-}
 function enemyGenerator(game) {
     let wave;
     switch (game.level) {
