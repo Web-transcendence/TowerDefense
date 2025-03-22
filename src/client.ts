@@ -43,9 +43,18 @@ class Player {
     }
 }
 
+class Assets {
+    Enemy: HTMLImageElement = new Image();
+    constructor () {
+        this.Enemy.src = "./assets/slime.png";
+    }
+}
+
+const tile = 80;
 let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
+const assets = new Assets();
 
 function timeTostring(timer: number) {
     const minutes = Math.floor(timer / 60);
@@ -55,10 +64,10 @@ function timeTostring(timer: number) {
 
 function drawGrid() {
     let sq = true;
-    for (let i = 0; i < canvas.width; i += 80) {
+    for (let i = 0; i < canvas.width; i += tile) {
         let j = 0;
         sq = !sq;
-        for (; j < canvas.height; j += 80) {
+        for (; j < canvas.height; j += tile) {
             if (sq) {
                 ctx.fillStyle = "#364153";
                 sq = false;
@@ -66,7 +75,7 @@ function drawGrid() {
                 ctx.fillStyle = "#101828";
                 sq = true;
             }
-            ctx.fillRect(i, j, 80, 80);
+            ctx.fillRect(i, j, tile, tile);
         }
     }
 }
@@ -86,54 +95,51 @@ function drawTimer() {
 }
 
 function enemyPosx(pos: number, player: number) {
-    if (pos < 440) {
+    if (pos < tile * 6) {
         if (player === 1)
             return (pos);
         else
-            return (1200 - pos);
+            return (canvas.width - pos);
     }
-    if (pos > 1000) {
+    if (pos > tile * 13) {
         if (player === 1)
-            return (1440 - pos);
+            return (tile * 19 - pos);
         else
-            return (pos - 240);
+            return (pos - tile * 4);
     }
     else {
         if (player === 1)
-            return (439);
+            return (tile * 6 - 1);
         else
-            return (759);
+            return (tile * 9 - 1);
     }
 }
 
 function enemyPosy(pos: number) {
-    if (pos < 440) {
-        return (119);
+    if (pos < tile * 6) {
+        return (tile - 1);
     }
-    if (pos > 1000) {
-        return (679);
+    if (pos > tile * 13) {
+        return (tile * 8 - 1);
     }
     else
-        return (pos - 321);
+        return (pos - tile * 5 - 1);
 }
 
 function drawEnemies() {
-    console.log(player1.enemies);
     player1.enemies.forEach(enemy => {
+        ctx.drawImage(assets.Enemy, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70)
         ctx.fillStyle = "#fcc800";
-        ctx.fillRect(enemyPosx(enemy.pos, 1) - 20, enemyPosy(enemy.pos) - 20, 40, 40);
-        ctx.fillStyle = "#101828";
-        ctx.font = "12px 'Press Start 2P'";
+        ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center"
-        ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 20);
+        ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
     });
     player2.enemies.forEach(enemy => {
+        ctx.drawImage(assets.Enemy, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70)
         ctx.fillStyle = "#fcc800";
-        ctx.fillRect(enemyPosx(enemy.pos, 2) - 20, enemyPosy(enemy.pos) - 20, 40, 40);
-        ctx.fillStyle = "#101828";
-        ctx.font = "12px 'Press Start 2P'";
+        ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center"
-        ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 2), enemyPosy(enemy.pos) + 20);
+        ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 2), enemyPosy(enemy.pos) + 28);
     });
 }
 
@@ -183,6 +189,17 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("keyup", (event) => {
     socket.send(JSON.stringify({ type: "input", key: event.key, state: "up" }));
+});
+
+canvas.addEventListener("click", (event: MouseEvent) => {
+    const rect = canvas.getBoundingClientRect(); // Récupère la position du canvas
+    const scaleX = canvas.width / rect.width; // Gestion du scaling si besoin
+    const scaleY = canvas.height / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+    if (x >= 40 && x < 120 && y <= 360 && y > 440)
+        socket.send(JSON.stringify({ type: "clic" }));
+    //console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
 });
 
 socket.onclose = function () { return console.log("Disconnected"); };
