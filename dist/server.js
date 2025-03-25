@@ -3,12 +3,14 @@ import { WebSocketServer } from "ws";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import * as fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+const inputSchema = z.object({ player: z.number(), button: z.string() });
 app.use(express.static(path.join(__dirname, "../public")));
 class Game {
     constructor(timer) {
@@ -42,11 +44,12 @@ class Timer {
 }
 class Player {
     constructor(name) {
-        this.name = name;
         this.hp = 3;
         this.mana = 210;
+        this.cost = 60;
+        this.name = name;
         this.enemies = [];
-        this.deck = [];
+        this.deck = loadTowers(path.join(__dirname, "../resources/towers.json"));
         this.board = [];
     }
     addEnemy(enemy) {
@@ -56,8 +59,12 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     toJSON() {
-        return { class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies };
+        return { class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies };
     }
+}
+function loadTowers(filePath) {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return (JSON.parse(data));
 }
 class Tower {
     constructor(type, speed, damages, area, effect) {
@@ -90,7 +97,7 @@ class Enemy {
 }
 function loadEnemies(filePath) {
     const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
+    return (JSON.parse(data));
 }
 let lvl0Enemies = loadEnemies(path.join(__dirname, "../resources/lvl0_enemies.json"));
 let lvl1Enemies = loadEnemies(path.join(__dirname, "../resources/lvl1_enemies.json"));
@@ -172,6 +179,15 @@ wss.on("connection", (ws) => {
     let player1 = new Player("Player 1");
     let player2 = new Player("Player 2");
     let game = new Game(new Timer(0, 4));
+    ws.on("message", (message) => {
+        const { data, success, error } = inputSchema.safeParse(JSON.parse(message.toString()));
+        if (!success || !data) {
+            console.error(error);
+            return;
+        }
+        //const {button, player} = data;
+        console.log(data);
+    });
     const intervalId = setInterval(() => {
         ws.send(JSON.stringify(player1));
         ws.send(JSON.stringify(player2));

@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import * as fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,6 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+const inputSchema = z.object({ player: z.number(), button: z.string() });
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -52,17 +54,16 @@ class Timer {
 
 class Player {
     name: string;
-    hp: number;
-    mana: number;
+    hp: number = 3;
+    mana: number = 210;
+    cost: number = 60;
     enemies: Enemy[];
     deck: Tower[];
     board: Board[];
     constructor(name: string) {
         this.name = name;
-        this.hp = 3;
-        this.mana = 210;
         this.enemies = [];
-        this.deck = [];
+        this.deck = loadTowers(path.join(__dirname, "../resources/towers.json"));
         this.board = [];
     }
     addEnemy(enemy: Enemy) {
@@ -72,8 +73,13 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     toJSON() {
-        return {class: this.name, hp: this.hp, mana: this.mana, enemies: this.enemies};
+        return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies};
     }
+}
+
+function loadTowers(filePath: string): Tower[] {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return (JSON.parse(data));
 }
 
 class Tower {
@@ -123,7 +129,7 @@ class Enemy {
 
 function loadEnemies(filePath: string): Enemy[] {
     const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
+    return (JSON.parse(data));
 }
 
 let lvl0Enemies = loadEnemies(path.join(__dirname, "../resources/lvl0_enemies.json"));
@@ -213,15 +219,33 @@ wss.on("connection", (ws) => {
     let player2 = new Player ("Player 2");
     let game = new Game(new Timer(0, 4));
 
+    ws.on("message", (message) => {
+        const {data, success, error} = inputSchema.safeParse(JSON.parse(message.toString()));
+        if (!success || !data) {
+            console.error(error);
+            return ;
+        }
+        switch (data.player) {
+            case 1:
+                break;
+            case 2:
+                break;
+            default:
+                break;
+        }
+    });
+
     const intervalId = setInterval(() => {
         ws.send(JSON.stringify(player1));
         ws.send(JSON.stringify(player2));
         ws.send(JSON.stringify(game));
     }, 10);
+
     game.timer.start();
     gameInit(player1, player2, game);
     gameLoop(player1, player2, game);
     enemySpawner(player1, player2, game);
+
     ws.on("close", () => {
         clearInterval(intervalId);
         console.log("Client disconnected");

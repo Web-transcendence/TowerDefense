@@ -20,9 +20,10 @@ var Enemy = /** @class */ (function () {
 }());
 var Player = /** @class */ (function () {
     function Player(name) {
-        this.name = name;
         this.hp = 3;
         this.mana = 210;
+        this.cost = 60;
+        this.name = name;
         this.enemies = [];
     }
     Player.prototype.addEnemy = function (enemy) {
@@ -32,8 +33,10 @@ var Player = /** @class */ (function () {
 }());
 var Assets = /** @class */ (function () {
     function Assets() {
-        this.Enemy = new Image();
-        this.Enemy.src = "./assets/slime.png";
+        this.enemy = new Image();
+        this.addTower = new Image();
+        this.enemy.src = "./assets/slime.png";
+        this.addTower.src = "./assets/addTower.png";
     }
     return Assets;
 }());
@@ -110,25 +113,34 @@ function enemyPosy(pos) {
 }
 function drawEnemies() {
     player1.enemies.forEach(function (enemy) {
-        ctx.drawImage(assets.Enemy, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
     });
     player2.enemies.forEach(function (enemy) {
-        ctx.drawImage(assets.Enemy, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 2), enemyPosy(enemy.pos) + 28);
     });
 }
+function drawButtons() {
+    ctx.drawImage(assets.addTower, tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.addTower, tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.fillStyle = "#fcc800";
+    ctx.font = "16px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
+    ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
+}
 function draw() {
-    // Background
     drawGrid();
     drawTimer();
     drawEnemies();
+    drawButtons();
     requestAnimationFrame(draw);
 }
 draw();
@@ -144,6 +156,7 @@ socket.onmessage = function (event) {
         case "Player 1":
             player1.hp = data.hp;
             player1.mana = data.mana;
+            player1.cost = data.cost;
             player1.enemies.splice(0, player1.enemies.length);
             data.enemies.forEach(function (enemy) {
                 player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
@@ -152,6 +165,7 @@ socket.onmessage = function (event) {
         case "Player 2":
             player2.hp = data.hp;
             player2.mana = data.mana;
+            player2.cost = data.cost;
             player2.enemies.splice(0, player2.enemies.length);
             data.enemies.forEach(function (enemy) {
                 player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
@@ -173,8 +187,13 @@ canvas.addEventListener("click", function (event) {
     var scaleY = canvas.height / rect.height;
     var x = (event.clientX - rect.left) * scaleX;
     var y = (event.clientY - rect.top) * scaleY;
-    if (x >= 40 && x < 120 && y <= 360 && y > 440)
-        socket.send(JSON.stringify({ type: "clic" }));
-    //console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+    if (x >= tile * 6 && x < tile * 7 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+        socket.send(JSON.stringify({ event: "clic", player: 1, button: "addTower" }));
+        console.log("Clic d\u00E9tect\u00E9 aux coordonn\u00E9es : (".concat(x, ", ").concat(y, ")"));
+    }
+    if (x >= tile * 8 && x < tile * 9 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+        socket.send(JSON.stringify({ event: "clic", player: 2, button: "addTower" }));
+        console.log("Clic d\u00E9tect\u00E9 aux coordonn\u00E9es : (".concat(x, ", ").concat(y, ")"));
+    }
 });
 socket.onclose = function () { return console.log("Disconnected"); };
