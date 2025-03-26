@@ -73,7 +73,7 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     toJSON() {
-        return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies};
+        return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board};
     }
 }
 
@@ -104,6 +104,9 @@ class Board {
     constructor(pos: number, tower: Tower) {
         this.tower = tower;
         this.pos = pos;
+    }
+    toJSON() {
+        return {class: "Board", pos: this.pos, tower: this.tower};
     }
 }
 

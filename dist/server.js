@@ -59,7 +59,7 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     toJSON() {
-        return { class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies };
+        return { class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board };
     }
 }
 function loadTowers(filePath) {
@@ -80,6 +80,9 @@ class Board {
     constructor(pos, tower) {
         this.tower = tower;
         this.pos = pos;
+    }
+    toJSON() {
+        return { class: "Board", pos: this.pos, tower: this.tower };
     }
 }
 class Enemy {
@@ -185,8 +188,14 @@ wss.on("connection", (ws) => {
             console.error(error);
             return;
         }
-        //const {button, player} = data;
-        console.log(data);
+        switch (data.player) {
+            case 1:
+                break;
+            case 2:
+                break;
+            default:
+                break;
+        }
     });
     const intervalId = setInterval(() => {
         ws.send(JSON.stringify(player1));
