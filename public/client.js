@@ -25,18 +25,44 @@ var Player = /** @class */ (function () {
         this.cost = 60;
         this.name = name;
         this.enemies = [];
+        this.deck = [];
+        this.board = [];
     }
     Player.prototype.addEnemy = function (enemy) {
         this.enemies.push(enemy);
     };
     return Player;
 }());
+var Tower = /** @class */ (function () {
+    function Tower(type, speed, damages, area, effect, level) {
+        this.type = type;
+        this.speed = speed;
+        this.damages = damages;
+        this.area = area;
+        this.effect = effect;
+        this.level = level;
+    }
+    return Tower;
+}());
+var Board = /** @class */ (function () {
+    function Board(pos, tower) {
+        this.tower = tower;
+        this.pos = pos;
+    }
+    return Board;
+}());
 var Assets = /** @class */ (function () {
     function Assets() {
         this.enemy = new Image();
         this.addTower = new Image();
+        this.fire = new Image();
+        this.ice = new Image();
+        this.earth = new Image();
         this.enemy.src = "./assets/slime.png";
         this.addTower.src = "./assets/addTower.png";
+        this.fire.src = "./assets/fire.png";
+        this.ice.src = "./assets/ice.png";
+        this.earth.src = "./assets/earth.png";
     }
     return Assets;
 }());
@@ -136,11 +162,32 @@ function drawButtons() {
     ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
     ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
 }
+function towerAsset(type) {
+    switch (type) {
+        case "fire":
+            return (assets.fire);
+        case "ice":
+            return (assets.ice);
+        case "earth":
+            return (assets.earth);
+        default:
+            return (assets.fire);
+    }
+}
+function drawTowers() {
+    player1.board.forEach(function (tower) {
+        ctx.drawImage(towerAsset(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+    });
+    player2.board.forEach(function (tower) {
+        ctx.drawImage(towerAsset(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+    });
+}
 function draw() {
     drawGrid();
     drawTimer();
     drawEnemies();
     drawButtons();
+    drawTowers();
     requestAnimationFrame(draw);
 }
 draw();
@@ -161,6 +208,14 @@ socket.onmessage = function (event) {
             data.enemies.forEach(function (enemy) {
                 player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
             });
+            player1.deck.splice(0, player1.deck.length);
+            data.deck.forEach(function (tower) {
+                player1.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
+            });
+            player1.board.splice(0, player1.board.length);
+            data.board.forEach(function (board) {
+                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
+            });
             break;
         case "Player 2":
             player2.hp = data.hp;
@@ -170,17 +225,26 @@ socket.onmessage = function (event) {
             data.enemies.forEach(function (enemy) {
                 player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
             });
+            player2.deck.splice(0, player2.deck.length);
+            data.deck.forEach(function (tower) {
+                player2.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
+            });
+            player2.board.splice(0, player2.board.length);
+            data.board.forEach(function (board) {
+                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
+            });
             break;
         default:
             console.warn("Unknown type received:", data);
     }
 };
-window.addEventListener("keydown", function (event) {
-    socket.send(JSON.stringify({ type: "input", key: event.key, state: "down" }));
-});
-window.addEventListener("keyup", function (event) {
-    socket.send(JSON.stringify({ type: "input", key: event.key, state: "up" }));
-});
+// window.addEventListener("keydown", (event) => {
+//     socket.send(JSON.stringify({ type: "input", key: event.key, state: "down" }));
+// });
+//
+// window.addEventListener("keyup", (event) => {
+//     socket.send(JSON.stringify({ type: "input", key: event.key, state: "up" }));
+// });
 canvas.addEventListener("click", function (event) {
     var rect = canvas.getBoundingClientRect(); // Récupère la position du canvas
     var scaleX = canvas.width / rect.width; // Gestion du scaling si besoin

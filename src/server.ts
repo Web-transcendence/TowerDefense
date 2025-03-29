@@ -72,6 +72,23 @@ class Player {
     clearDeadEnemies() {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
+    spawnTower() {
+        if (this.mana < this.cost || this.board.length > 20) {
+            console.log(`${this.name}: Mana insufficient or board full`);
+            return ;
+        }
+       this.mana -= this.cost;
+       this.cost += 10;
+       let pos = -1;
+       while (pos === -1) {
+           pos = Math.floor(Math.random() * 20);
+           if (this.board.find(item => item.pos === pos))
+                pos = -1;
+       }
+       const type = Math.floor(Math.random() * this.deck.length);
+       this.board.push(new Board(pos, this.deck[type]));
+       console.log(`${this.name}: Tower ${this.deck[type].type} spawned at position ${pos}`);
+    }
     toJSON() {
         return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board};
     }
@@ -95,6 +112,9 @@ class Tower {
         this.damages = damages;
         this.area = area;
         this.effect = effect;
+    }
+    toJSON() {
+        return {class: "Tower", type: this.type, speed: this.speed, damages: this.damages, area: this.area, effect: this.effect, level: this.level};
     }
 }
 
@@ -230,8 +250,10 @@ wss.on("connection", (ws) => {
         }
         switch (data.player) {
             case 1:
+                player1.spawnTower();
                 break;
             case 2:
+                player2.spawnTower();
                 break;
             default:
                 break;

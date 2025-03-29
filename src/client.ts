@@ -33,21 +33,57 @@ class Player {
     mana: number = 210;
     cost: number = 60;
     enemies: Enemy[];
+    deck: Tower[];
+    board: Board[];
     constructor(name: string) {
         this.name = name;
         this.enemies = [];
+        this.deck = [];
+        this.board = [];
     }
     addEnemy(enemy: Enemy) {
         this.enemies.push(enemy);
     }
 }
 
+class Tower {
+    type: string;
+    speed: number;
+    damages: number;
+    area: boolean;
+    effect: string;
+    level: number;
+    constructor(type: string, speed: number, damages: number, area: boolean, effect: string, level: number) {
+        this.type = type;
+        this.speed = speed;
+        this.damages = damages;
+        this.area = area;
+        this.effect = effect;
+        this.level = level;
+    }
+}
+
+class Board {
+    pos: number;
+    tower: Tower;
+    constructor(pos: number, tower: Tower) {
+        this.tower = tower;
+        this.pos = pos;
+    }
+}
+
 class Assets {
     enemy: HTMLImageElement = new Image();
     addTower: HTMLImageElement = new Image();
+    fire: HTMLImageElement = new Image();
+    ice: HTMLImageElement = new Image();
+    earth: HTMLImageElement = new Image();
     constructor () {
         this.enemy.src = "./assets/slime.png";
         this.addTower.src = "./assets/addTower.png";
+        this.fire.src = "./assets/fire.png";
+        this.ice.src = "./assets/ice.png";
+        this.earth.src = "./assets/earth.png";
     }
 }
 
@@ -154,11 +190,34 @@ function drawButtons() {
     ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
 }
 
+function towerAsset (type:string) {
+    switch (type) {
+        case "fire":
+            return (assets.fire);
+        case "ice":
+            return (assets.ice);
+        case "earth":
+            return (assets.earth);
+        default:
+            return (assets.fire);
+    }
+}
+
+function drawTowers() {
+    player1.board.forEach(tower => {
+        ctx.drawImage(towerAsset(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+    });
+    player2.board.forEach(tower => {
+        ctx.drawImage(towerAsset(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+    });
+}
+
 function draw() {
     drawGrid();
     drawTimer();
     drawEnemies();
     drawButtons();
+    drawTowers();
     requestAnimationFrame(draw);
 }
 
@@ -182,6 +241,14 @@ socket.onmessage = function (event) {
             data.enemies.forEach((enemy: Enemy) => {
                 player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
             });
+            player1.deck.splice(0, player1.deck.length);
+            data.deck.forEach((tower: Tower) => {
+                player1.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
+            });
+            player1.board.splice(0, player1.board.length);
+            data.board.forEach((board: Board) => {
+                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
+            });
             break;
         case "Player 2":
             player2.hp = data.hp;
@@ -191,19 +258,27 @@ socket.onmessage = function (event) {
             data.enemies.forEach((enemy: Enemy) => {
                 player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
             });
+            player2.deck.splice(0, player2.deck.length);
+            data.deck.forEach((tower: Tower) => {
+                player2.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
+            });
+            player2.board.splice(0, player2.board.length);
+            data.board.forEach((board: Board) => {
+                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
+            });
             break;
         default:
             console.warn("Unknown type received:", data);
     }
 };
 
-window.addEventListener("keydown", (event) => {
-    socket.send(JSON.stringify({ type: "input", key: event.key, state: "down" }));
-});
-
-window.addEventListener("keyup", (event) => {
-    socket.send(JSON.stringify({ type: "input", key: event.key, state: "up" }));
-});
+// window.addEventListener("keydown", (event) => {
+//     socket.send(JSON.stringify({ type: "input", key: event.key, state: "down" }));
+// });
+//
+// window.addEventListener("keyup", (event) => {
+//     socket.send(JSON.stringify({ type: "input", key: event.key, state: "up" }));
+// });
 
 canvas.addEventListener("click", (event: MouseEvent) => {
     const rect = canvas.getBoundingClientRect(); // Récupère la position du canvas
