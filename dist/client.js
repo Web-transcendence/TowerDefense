@@ -176,8 +176,21 @@ function drawTowers() {
         ctx.drawImage(towerAsset(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
 }
+function drawTemplate() {
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, tile * 0.5, tile * 6.5, tile * 8);
+    ctx.fillStyle = "blue";
+    ctx.strokeRect(0, tile, 6 * tile, 7 * tile);
+    ctx.fillStyle = "brown";
+    ctx.fillRect(tile * 0.5, tile * 1.5, tile * 5, tile * 6);
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, tile * 7.5, tile, tile);
+    ctx.fillStyle = "green";
+    ctx.fillRect(tile, tile * 2, tile * 4, tile * 5);
+}
 function draw() {
     drawGrid();
+    //drawTemplate(); // for debug use
     drawTimer();
     drawEnemies();
     drawButtons();
