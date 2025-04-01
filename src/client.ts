@@ -1,7 +1,7 @@
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
-
 const socket = new WebSocket("ws://localhost:8080");
+let frame: number = 0;
 
 class Game {
     level: number;
@@ -79,7 +79,7 @@ class Assets {
     }
     private loadImages() {
         const assetsFolder = "./assets/";
-        const imageNames = ["poop.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"]; // On remplacera cette liste par un fetch auto côté backend si besoin
+        const imageNames = ["poop0.png", "poop1.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"]; // On remplacera cette liste par un fetch auto côté backend si besoin
 
         for (const name of imageNames) {
             const key = name.split(".")[0];
@@ -89,6 +89,17 @@ class Assets {
         }
     }
     getImage(name: string): HTMLImageElement | undefined {
+        return (this.images[name]);
+    }
+    getAnImage(name: string): HTMLImageElement | undefined {
+        if (frame % 20 < 10) {
+            if (this.images[`${name}0`])
+                return (this.images[`${name}0`]);
+        }
+        else {
+            if (this.images[`${name}1`])
+                return (this.images[`${name}1`]);
+        }
         return (this.images[name]);
     }
 }
@@ -138,13 +149,13 @@ function drawTimer() {
 }
 
 function enemyPosx(pos: number, player: number) {
-    if (pos < tile * 6) {
+    if (pos < 480) {
         if (player === 1)
             return (pos);
         else
             return (canvas.width - pos);
     }
-    if (pos > tile * 13) {
+    if (pos > 1040) {
         if (player === 1)
             return (tile * 19 - pos);
         else
@@ -159,10 +170,10 @@ function enemyPosx(pos: number, player: number) {
 }
 
 function enemyPosy(pos: number) {
-    if (pos < tile * 6) {
+    if (pos < 480) {
         return (tile - 1);
     }
-    if (pos > tile * 13) {
+    if (pos > 1040) {
         return (tile * 8 - 1);
     }
     else
@@ -171,19 +182,34 @@ function enemyPosy(pos: number) {
 
 function drawEnemies() {
     player1.enemies.forEach(enemy => {
-        ctx.drawImage(assets.getImage(enemy.type)!, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        if (enemy.pos < 480)
+            ctx.drawImage(assets.getAnImage(enemy.type)!, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        else {
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(assets.getAnImage(enemy.type)!, -1 * (enemyPosx(enemy.pos, 1) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.restore();
+        }
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
     });
     player2.enemies.forEach(enemy => {
-        ctx.drawImage(assets.getImage(enemy.type)!, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        if (enemy.pos >= 480)
+            ctx.drawImage(assets.getAnImage(enemy.type)!, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        else {
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(assets.getAnImage(enemy.type)!, -1 * (enemyPosx(enemy.pos, 2) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.restore();
+        }
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 2), enemyPosy(enemy.pos) + 28);
     });
+    frame += 1;
 }
 
 function drawButtons() {
@@ -220,7 +246,7 @@ function drawTemplate() {
 
 function draw() {
     drawGrid();
-    //drawTemplate(); // for debug use
+    drawTemplate(); // for debug use
     drawTimer();
     drawEnemies();
     drawButtons();
