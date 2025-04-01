@@ -69,7 +69,9 @@ class Assets {
             "bslime0.png", "bslime1.png",
             "gslime0.png", "gslime1.png",
             "yslime0.png", "yslime1.png",
-            "rslime0.png", "rslime1.png"];
+            "rslime0.png", "rslime1.png",
+            "pslime0.png", "pslime1.png",
+            "dslime0.png", "dslime1.png",];
         for (const name of imageNames) {
             const key = name.split(".")[0];
             const img = new Image();
@@ -81,7 +83,7 @@ class Assets {
         return (this.images[name]);
     }
     getAnImage(name) {
-        if (frame % 20 < 10) {
+        if (frame % 30 < 15) {
             if (this.images[`${name}0`])
                 return (this.images[`${name}0`]);
         }

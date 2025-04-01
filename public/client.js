@@ -74,7 +74,9 @@ var Assets = /** @class */ (function () {
             "bslime0.png", "bslime1.png",
             "gslime0.png", "gslime1.png",
             "yslime0.png", "yslime1.png",
-            "rslime0.png", "rslime1.png"];
+            "rslime0.png", "rslime1.png",
+            "pslime0.png", "pslime1.png",
+            "dslime0.png", "dslime1.png",];
         for (var _i = 0, imageNames_1 = imageNames; _i < imageNames_1.length; _i++) {
             var name_1 = imageNames_1[_i];
             var key = name_1.split(".")[0];
@@ -87,7 +89,7 @@ var Assets = /** @class */ (function () {
         return (this.images[name]);
     };
     Assets.prototype.getAnImage = function (name) {
-        if (frame % 20 < 10) {
+        if (frame % 30 < 15) {
             if (this.images["".concat(name, "0")])
                 return (this.images["".concat(name, "0")]);
         }

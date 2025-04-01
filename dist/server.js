@@ -131,15 +131,15 @@ const enemies = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
 function enemyGenerator(game) {
     let wave;
     if (game.level != 2)
-        wave = Math.floor((100 - game.timer.timeLeft) / 10);
+        wave = Math.floor((100 - game.timer.timeLeft) / 7);
     else
-        wave = Math.floor((600 - game.timer.timeLeft) / 10);
+        wave = Math.floor((600 - game.timer.timeLeft) / 7);
     if (wave >= enemies[game.level].length)
         wave = enemies[game.level].length - 1;
     return (enemies[game.level][wave].clone());
 }
 function enemySpawner(player1, player2, game) {
-    if (game.start && game.timer.timeLeft % 10 === 5) {
+    if (game.start && game.timer.timeLeft % 7 === 4) {
         player1.addEnemy(enemyGenerator(game));
         player2.addEnemy(enemyGenerator(game));
     }
