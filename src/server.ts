@@ -93,11 +93,6 @@ class Player {
     }
 }
 
-function loadTowers(filePath: string): Tower[] {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return (JSON.parse(data));
-}
-
 class Tower {
     type: string;
     speed: number;
@@ -152,12 +147,18 @@ class Enemy {
     }
 }
 
+function loadTowers(filePath: string): Tower[] {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    const rawTowers = JSON.parse(data);
+    return (rawTowers.map((t: any) => new Tower(t.type, t.speed, t.damages, t.area, t.effect)));
+}
+
 function loadEnemies(filePath: string): Enemy[][] {
     const data = fs.readFileSync(filePath, 'utf-8');
     const jsonData = JSON.parse(data);
-    return jsonData.enemies.map((level: any[]) =>
+    return (jsonData.enemies.map((level: any[]) =>
         level.map(enemy => new Enemy(enemy.type, enemy.hp, enemy.speed, enemy.damages))
-    );
+    ));
 }
 
 const enemies: Enemy[][] = loadEnemies(path.join(__dirname, "../resources/enemies.json"));

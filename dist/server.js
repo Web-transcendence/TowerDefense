@@ -79,10 +79,6 @@ class Player {
         return { class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board };
     }
 }
-function loadTowers(filePath) {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return (JSON.parse(data));
-}
 class Tower {
     constructor(type, speed, damages, area, effect) {
         this.level = 1;
@@ -121,10 +117,15 @@ class Enemy {
         return { class: "Enemy", type: this.type, hp: this.hp, pos: this.pos, alive: this.alive };
     }
 }
+function loadTowers(filePath) {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    const rawTowers = JSON.parse(data);
+    return (rawTowers.map((t) => new Tower(t.type, t.speed, t.damages, t.area, t.effect)));
+}
 function loadEnemies(filePath) {
     const data = fs.readFileSync(filePath, 'utf-8');
     const jsonData = JSON.parse(data);
-    return jsonData.enemies.map((level) => level.map(enemy => new Enemy(enemy.type, enemy.hp, enemy.speed, enemy.damages)));
+    return (jsonData.enemies.map((level) => level.map(enemy => new Enemy(enemy.type, enemy.hp, enemy.speed, enemy.damages))));
 }
 const enemies = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
 function enemyGenerator(game) {

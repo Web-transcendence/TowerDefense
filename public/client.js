@@ -59,7 +59,7 @@ var Assets = /** @class */ (function () {
     }
     Assets.prototype.loadImages = function () {
         var assetsFolder = "./assets/";
-        var imageNames = ["poop0.png", "poop1.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"]; // On remplacera cette liste par un fetch auto côté backend si besoin
+        var imageNames = ["thunder.png", "wind.png", "empty.png", "stats.png", "map1.png", "poop0.png", "poop1.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"];
         for (var _i = 0, imageNames_1 = imageNames; _i < imageNames_1.length; _i++) {
             var name_1 = imageNames_1[_i];
             var key = name_1.split(".")[0];
@@ -121,9 +121,8 @@ function drawTimer() {
         ctx.fillText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + 23);
     else if (timer > 1)
         ctx.fillText(timeTostring(timer - 1), canvas.width * 0.5, canvas.height * 0.5 + 23);
-    else {
+    else
         ctx.fillText("Go !!!", canvas.width * 0.5, canvas.height * 0.5 + 23);
-    }
 }
 function enemyPosx(pos, player) {
     if (pos < 480) {
@@ -187,13 +186,30 @@ function drawEnemies() {
     frame += 1;
 }
 function drawButtons() {
-    ctx.drawImage(assets.getImage("addTower"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.drawImage(assets.getImage("addTower"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
     ctx.fillStyle = "#fcc800";
     ctx.font = "16px 'Press Start 2P'";
     ctx.textAlign = "center";
-    ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
-    ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
+    // addTower
+    ctx.drawImage(assets.getImage("addTower"), tile * 5.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 9.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.fillText(player1.cost.toString(), tile * 5.5, canvas.height - tile * 0.75 + 22);
+    ctx.fillText(player2.cost.toString(), tile * 9.5, canvas.height - tile * 0.75 + 22);
+    // stats
+    ctx.drawImage(assets.getImage("stats"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("stats"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.fillText(player1.hp.toString(), tile * 6.65, canvas.height - tile * 0.8);
+    ctx.fillText(player1.mana.toString(), tile * 6.65, canvas.height - tile * 0.45, 30);
+    ctx.fillText(player2.hp.toString(), tile * 8.65, canvas.height - tile * 0.8);
+    ctx.fillText(player2.mana.toString(), tile * 8.65, canvas.height - tile * 0.45, 30);
+    // Towers
+    for (var i = 0; i < player1.deck.length && i < player2.deck.length; i++) {
+        ctx.drawImage(assets.getImage("empty"), tile * (0.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+        ctx.drawImage(assets.getImage(player1.deck[i].type), tile * (0.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.fillText("lv. ".concat(player1.deck[i].level.toString()), tile * (0.5 + i), canvas.height - tile * 0.45, 50);
+        ctx.drawImage(assets.getImage("empty"), tile * (10.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+        ctx.drawImage(assets.getImage(player2.deck[i].type), tile * (10.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.fillText("lv. ".concat(player2.deck[i].level.toString()), tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+    }
 }
 function drawTowers() {
     player1.board.forEach(function (tower) {
@@ -217,7 +233,8 @@ function drawTemplate() {
 }
 function draw() {
     drawGrid();
-    drawTemplate(); // for debug use
+    ctx.drawImage(assets.getImage("map1"), 0, 0, canvas.width, canvas.height);
+    //drawTemplate(); // for debug use only
     drawTimer();
     drawEnemies();
     drawButtons();
@@ -278,11 +295,11 @@ canvas.addEventListener("click", function (event) {
     var scaleY = canvas.height / rect.height;
     var x = (event.clientX - rect.left) * scaleX;
     var y = (event.clientY - rect.top) * scaleY;
-    if (x >= tile * 6 && x < tile * 7 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+    if (x >= tile * 5 && x < tile * 6 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
         socket.send(JSON.stringify({ event: "clic", player: 1, button: "addTower" }));
         console.log("Clic d\u00E9tect\u00E9 aux coordonn\u00E9es : (".concat(x, ", ").concat(y, ")"));
     }
-    if (x >= tile * 8 && x < tile * 9 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+    if (x >= tile * 9 && x < tile * 10 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
         socket.send(JSON.stringify({ event: "clic", player: 2, button: "addTower" }));
         console.log("Clic d\u00E9tect\u00E9 aux coordonn\u00E9es : (".concat(x, ", ").concat(y, ")"));
     }
