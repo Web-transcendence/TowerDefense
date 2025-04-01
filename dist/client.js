@@ -48,23 +48,28 @@ class Board {
 }
 class Assets {
     constructor() {
-        this.enemy = new Image();
-        this.addTower = new Image();
-        this.fire = new Image();
-        this.ice = new Image();
-        this.earth = new Image();
-        this.enemy.src = "./assets/slime.png";
-        this.addTower.src = "./assets/addTower.png";
-        this.fire.src = "./assets/fire.png";
-        this.ice.src = "./assets/ice.png";
-        this.earth.src = "./assets/earth.png";
+        this.images = {};
+        this.loadImages();
+    }
+    loadImages() {
+        const assetsFolder = "./assets/";
+        const imageNames = ["poop.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"]; // On remplacera cette liste par un fetch auto côté backend si besoin
+        for (const name of imageNames) {
+            const key = name.split(".")[0];
+            const img = new Image();
+            img.src = `${assetsFolder}${name}`;
+            this.images[key] = img;
+        }
+    }
+    getImage(name) {
+        return (this.images[name]);
     }
 }
+const assets = new Assets();
 const tile = 80;
 let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
-const assets = new Assets();
 function timeTostring(timer) {
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
@@ -133,14 +138,14 @@ function enemyPosy(pos) {
 }
 function drawEnemies() {
     player1.enemies.forEach(enemy => {
-        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.getImage(enemy.type), enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
     });
     player2.enemies.forEach(enemy => {
-        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.getImage(enemy.type), enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
@@ -148,32 +153,20 @@ function drawEnemies() {
     });
 }
 function drawButtons() {
-    ctx.drawImage(assets.addTower, tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.drawImage(assets.addTower, tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
     ctx.fillStyle = "#fcc800";
     ctx.font = "16px 'Press Start 2P'";
     ctx.textAlign = "center";
     ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
     ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
 }
-function towerAsset(type) {
-    switch (type) {
-        case "fire":
-            return (assets.fire);
-        case "ice":
-            return (assets.ice);
-        case "earth":
-            return (assets.earth);
-        default:
-            return (assets.fire);
-    }
-}
 function drawTowers() {
     player1.board.forEach(tower => {
-        ctx.drawImage(towerAsset(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getImage(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
     player2.board.forEach(tower => {
-        ctx.drawImage(towerAsset(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getImage(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
 }
 function drawTemplate() {

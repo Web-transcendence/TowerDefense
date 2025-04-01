@@ -53,24 +53,30 @@ var Board = /** @class */ (function () {
 }());
 var Assets = /** @class */ (function () {
     function Assets() {
-        this.enemy = new Image();
-        this.addTower = new Image();
-        this.fire = new Image();
-        this.ice = new Image();
-        this.earth = new Image();
-        this.enemy.src = "./assets/slime.png";
-        this.addTower.src = "./assets/addTower.png";
-        this.fire.src = "./assets/fire.png";
-        this.ice.src = "./assets/ice.png";
-        this.earth.src = "./assets/earth.png";
+        this.images = {};
+        this.loadImages();
     }
+    Assets.prototype.loadImages = function () {
+        var assetsFolder = "./assets/";
+        var imageNames = ["poop.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"]; // On remplacera cette liste par un fetch auto côté backend si besoin
+        for (var _i = 0, imageNames_1 = imageNames; _i < imageNames_1.length; _i++) {
+            var name_1 = imageNames_1[_i];
+            var key = name_1.split(".")[0];
+            var img = new Image();
+            img.src = "".concat(assetsFolder).concat(name_1);
+            this.images[key] = img;
+        }
+    };
+    Assets.prototype.getImage = function (name) {
+        return (this.images[name]);
+    };
     return Assets;
 }());
+var assets = new Assets();
 var tile = 80;
 var game = new Game;
 var player1 = new Player("Player 1");
 var player2 = new Player("Player 2");
-var assets = new Assets();
 function timeTostring(timer) {
     var minutes = Math.floor(timer / 60);
     var seconds = timer % 60;
@@ -139,14 +145,14 @@ function enemyPosy(pos) {
 }
 function drawEnemies() {
     player1.enemies.forEach(function (enemy) {
-        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.getImage(enemy.type), enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
     });
     player2.enemies.forEach(function (enemy) {
-        ctx.drawImage(assets.enemy, enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+        ctx.drawImage(assets.getImage(enemy.type), enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
         ctx.fillStyle = "#fcc800";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
@@ -154,32 +160,20 @@ function drawEnemies() {
     });
 }
 function drawButtons() {
-    ctx.drawImage(assets.addTower, tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.drawImage(assets.addTower, tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
     ctx.fillStyle = "#fcc800";
     ctx.font = "16px 'Press Start 2P'";
     ctx.textAlign = "center";
     ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
     ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
 }
-function towerAsset(type) {
-    switch (type) {
-        case "fire":
-            return (assets.fire);
-        case "ice":
-            return (assets.ice);
-        case "earth":
-            return (assets.earth);
-        default:
-            return (assets.fire);
-    }
-}
 function drawTowers() {
     player1.board.forEach(function (tower) {
-        ctx.drawImage(towerAsset(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getImage(tower.tower.type), tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
     player2.board.forEach(function (tower) {
-        ctx.drawImage(towerAsset(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getImage(tower.tower.type), tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
 }
 function drawTemplate() {
