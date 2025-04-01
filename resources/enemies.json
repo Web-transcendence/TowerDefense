@@ -1,19 +1,40 @@
 {
   "enemies": [
     [
-      { "type": "poop", "hp": 30, "speed": 1, "damages": 1 },
-      { "type": "slime", "hp": 60, "speed": 2, "damages": 1 },
-      { "type": "bat", "hp": 100, "speed": 2, "damages": 1 }
+      { "type": "poop", "hp": 15, "speed": 1.5, "damages": 1 },
+      { "type": "poop", "hp": 30, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 45, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 60, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 75, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 90, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 105, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 120, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 150, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 180, "speed": 1.5, "damages": 1 }
     ],
     [
-      { "type": "poop", "hp": 35, "speed": 1, "damages": 2 },
-      { "type": "slime", "hp": 70, "speed": 2, "damages": 2 },
-      { "type": "bat", "hp": 120, "speed": 2, "damages": 2 }
+      { "type": "poop", "hp": 15, "speed": 1.5, "damages": 1 },
+      { "type": "poop", "hp": 30, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 45, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 60, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 75, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 90, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 105, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 120, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 150, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 180, "speed": 1.5, "damages": 1 }
     ],
     [
-      { "type": "poop", "hp": 40, "speed": 1, "damages": 3 },
-      { "type": "slime", "hp": 80, "speed": 2, "damages": 3 },
-      { "type": "bat", "hp": 150, "speed": 2, "damages": 3 }
+      { "type": "poop", "hp": 15, "speed": 1.5, "damages": 1 },
+      { "type": "poop", "hp": 30, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 45, "speed": 1.5, "damages": 1 },
+      { "type": "bslime", "hp": 60, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 75, "speed": 1.5, "damages": 1 },
+      { "type": "gslime", "hp": 90, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 105, "speed": 1.5, "damages": 1 },
+      { "type": "yslime", "hp": 120, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 150, "speed": 1.5, "damages": 1 },
+      { "type": "rslime", "hp": 180, "speed": 1.5, "damages": 1 }
     ]
   ]
 }

@@ -1,7 +1,7 @@
 [
-  { "type": "fire", "speed": 10, "damages" : 12, "area": true, "effect": "none" },
-  { "type": "ice", "speed": 8, "damages" : 10, "area": true, "effect": "slow" },
-  { "type": "earth", "speed": 10, "damages" : 18, "area": false, "effect": "none" },
-  { "type": "wind", "speed": 12, "damages" : 8, "area": false, "effect": "none" },
-  { "type": "thunder", "speed": 14, "damages" : 20, "area": false, "effect": "stun" }
+  { "type": "red", "speed": 10, "damages" : 12, "area": true, "effect": "none" },
+  { "type": "blue", "speed": 8, "damages" : 10, "area": true, "effect": "slow" },
+  { "type": "green", "speed": 10, "damages" : 18, "area": false, "effect": "none" },
+  { "type": "yellow", "speed": 12, "damages" : 8, "area": false, "effect": "none" },
+  { "type": "white", "speed": 14, "damages" : 20, "area": false, "effect": "stun" }
 ]

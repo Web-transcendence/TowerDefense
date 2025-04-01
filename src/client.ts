@@ -79,7 +79,22 @@ class Assets {
     }
     private loadImages() {
         const assetsFolder = "./assets/";
-        const imageNames = ["thunder.png", "wind.png", "empty.png", "stats.png", "map1.png", "poop0.png", "poop1.png", "bat.png", "slime.png", "addTower.png", "fire.png", "ice.png", "earth.png"];
+        const imageNames = ["black1.png", "black2.png", "black3.png", "black4.png",
+                            "blue1.png", "blue2.png", "blue3.png", "blue4.png",
+                            "green1.png", "green2.png", "green3.png", "green4.png",
+                            "orange1.png", "orange2.png", "orange3.png", "orange4.png",
+                            "pink1.png", "pink2.png", "pink3.png", "pink4.png",
+                            "red1.png", "red2.png", "red3.png", "red4.png",
+                            "violet1.png", "violet2.png", "violet3.png", "violet4.png",
+                            "white1.png", "white2.png", "white3.png", "white4.png",
+                            "yellow1.png", "yellow2.png", "yellow3.png", "yellow4.png",
+                            "ygreen1.png", "ygreen2.png", "ygreen3.png", "ygreen4.png",
+                            "addTower.png", "empty.png", "stats.png", "map1.png",
+                            "poop0.png", "poop1.png",
+                            "bslime0.png", "bslime1.png",
+                            "gslime0.png", "gslime1.png",
+                            "yslime0.png", "yslime1.png",
+                            "rslime0.png", "rslime1.png"];
 
         for (const name of imageNames) {
             const key = name.split(".")[0];
@@ -230,20 +245,20 @@ function drawButtons() {
     // Towers
     for (let i = 0; i < player1.deck.length && i < player2.deck.length; i++) {
         ctx.drawImage(assets.getImage("empty")!, tile * (0.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-        ctx.drawImage(assets.getImage(player1.deck[i].type)!, tile * (0.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level.toString()}`)!, tile * (0.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
         ctx.fillText(`lv. ${player1.deck[i].level.toString()}`, tile * (0.5 + i), canvas.height - tile * 0.45, 50);
         ctx.drawImage(assets.getImage("empty")!, tile * (10.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-        ctx.drawImage(assets.getImage(player2.deck[i].type)!, tile * (10.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level.toString()}`)!, tile * (10.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
         ctx.fillText(`lv. ${player2.deck[i].level.toString()}`, tile * (10.5 + i), canvas.height - tile * 0.45, 50);
     }
 }
 
 function drawTowers() {
     player1.board.forEach(tower => {
-        ctx.drawImage(assets.getImage(tower.tower.type)!, tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
     player2.board.forEach(tower => {
-        ctx.drawImage(assets.getImage(tower.tower.type)!, tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
     });
 }
 
