@@ -145,41 +145,33 @@ class Enemy {
         this.damages = damages;
         this.alive = true;
     }
+    clone () {
+        return(new Enemy(this.type, this.hp, this.speed, this.damages));
+    }
     toJSON() {
         return {class: "Enemy", type: this.type, hp: this.hp, pos: this.pos, alive: this.alive};
     }
 }
 
-function loadEnemies(filePath: string): Enemy[] {
+function loadEnemies(filePath: string): Enemy[][] {
     const data = fs.readFileSync(filePath, 'utf-8');
-    return (JSON.parse(data));
+    const jsonData = JSON.parse(data);
+    return jsonData.enemies.map((level: any[]) =>
+        level.map(enemy => new Enemy(enemy.type, enemy.hp, enemy.speed, enemy.damages))
+    );
 }
 
-let lvl0Enemies = loadEnemies(path.join(__dirname, "../resources/lvl0_enemies.json"));
-let lvl1Enemies = loadEnemies(path.join(__dirname, "../resources/lvl1_enemies.json"));
-let lvl2Enemies = loadEnemies(path.join(__dirname, "../resources/lvl2_enemies.json"));
+const enemies: Enemy[][] = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
 
 function enemyGenerator(game: Game) {
     let wave: number;
-    switch (game.level) {
-        case 0:
-            wave = Math.floor((100 - game.timer.timeLeft) / 10);
-            if (wave >= lvl0Enemies.length)
-                wave = lvl0Enemies.length - 1;
-            return (new Enemy(lvl0Enemies[wave].type, lvl0Enemies[wave].hp, lvl0Enemies[wave].speed, lvl0Enemies[wave].damages));
-        case 1:
-            wave = Math.floor((100 - game.timer.timeLeft) / 10);
-            if (wave >= lvl1Enemies.length)
-                wave = lvl1Enemies.length - 1;
-            return (new Enemy(lvl1Enemies[wave].type, lvl1Enemies[wave].hp, lvl1Enemies[wave].speed, lvl1Enemies[wave].damages));
-        case 2:
-            wave = Math.floor((600 - game.timer.timeLeft) / 10);
-            if (wave >= lvl2Enemies.length)
-                wave = lvl2Enemies.length - 1;
-            return (new Enemy(lvl2Enemies[wave].type, lvl2Enemies[wave].hp, lvl2Enemies[wave].speed, lvl2Enemies[wave].damages));
-        default:
-            return (new Enemy(lvl0Enemies[0].type, lvl0Enemies[0].hp, lvl0Enemies[0].speed, lvl0Enemies[0].damages));
-    }
+    if (game.level != 2)
+        wave = Math.floor((100 - game.timer.timeLeft) / 10);
+    else
+        wave = Math.floor((600 - game.timer.timeLeft) / 10);
+    if (wave >= enemies[game.level].length)
+        wave = enemies[game.level].length - 1;
+    return (enemies[game.level][wave].clone());
 }
 
 function enemySpawner(player1: Player, player2: Player, game: Game) {
@@ -228,8 +220,8 @@ function gameInit(player1: Player, player2: Player, game: Game) {
     if (game.timer.timeLeft === 0) {
         game.timer = new Timer(1, 40);
         game.start = true;
-        player1.addEnemy(new Enemy(lvl0Enemies[0].type, lvl0Enemies[0].hp, lvl0Enemies[0].speed, lvl0Enemies[0].damages));
-        player2.addEnemy(new Enemy(lvl0Enemies[0].type, lvl0Enemies[0].hp, lvl0Enemies[0].speed, lvl0Enemies[0].damages));
+        player1.addEnemy(enemies[0][0].clone());
+        player2.addEnemy(enemies[0][0].clone());
         game.timer.start();
     }
     else
