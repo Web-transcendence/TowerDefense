@@ -1,17 +1,31 @@
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const socket = new WebSocket("ws://localhost:8080");
-let frame: number = 0;
+
+
+
+// Main menu and tower selection
+
+function drawMenu() {
+    ctx.fillStyle = "grey";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(assets.getAnImage("rslime")!, canvas.width * 0.1, canvas.height * 0.06, 170, 170);
+    ctx.drawImage(assets.getAnImage("gslime")!, canvas.width * 0.18, canvas.height * 0.17, 80, 80);
+    ctx.drawImage(assets.getAnImage("pslime")!, canvas.width * 0.11, canvas.height * 0.18, 80, 80);
+    frame += 0.75;
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.font = "64px 'Press Start 2P'";
+    ctx.fillText("Slime Defender", canvas.width * 0.55, canvas.height * 0.25, canvas.width * 0.6);
+}
+
+// Game classes and functions
 
 class Game {
-    level: number;
-    timer: number;
-    start: boolean;
-    constructor() {
-        this.timer = 4;
-        this.level = 0;
-        this.start = false;
-    }
+    level: number = 0;
+    timer: number = 4;
+    start: boolean = false;
+    state: number = 0;
 }
 
 class Enemy {
@@ -121,8 +135,9 @@ class Assets {
     }
 }
 
+let frame: number = 0;
 const assets = new Assets();
-const tile = 80;
+const tile = canvas.width / 15;
 let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
@@ -277,7 +292,7 @@ function drawTemplate() {
     ctx.fillRect(tile, tile * 2, tile * 4, tile * 5);
 }
 
-function draw() {
+function drawGame() {
     drawGrid();
     ctx.drawImage(assets.getImage("map1")!, 0, 0, canvas.width, canvas.height);
     //drawTemplate(); // for debug use only
@@ -285,10 +300,27 @@ function draw() {
     drawEnemies();
     drawButtons();
     drawTowers();
-    requestAnimationFrame(draw);
 }
 
-draw();
+// Main
+
+function mainLoop() {
+    switch (game.state) {
+        case 0:
+            drawMenu();
+            break;
+        case 1:
+            drawGame();
+            break;
+        default:
+            break;
+    }
+    requestAnimationFrame(mainLoop);
+}
+
+mainLoop();
+
+// Communication with backend
 
 socket.onopen = function () { return console.log("Connected to server"); };
 
@@ -345,13 +377,22 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     const scaleY = canvas.height / rect.height;
     const x = (event.clientX - rect.left) * scaleX;
     const y = (event.clientY - rect.top) * scaleY;
-    if (x >= tile * 5 && x < tile * 6 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
-        socket.send(JSON.stringify({ event: "clic", player: 1, button: "addTower" }));
-        console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
-    }
-    if (x >= tile * 9 && x < tile * 10 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
-        socket.send(JSON.stringify({ event: "clic", player: 2, button: "addTower" }));
-        console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+    switch (game.state) {
+        case 0:
+            game.state = 1;
+            break;
+        case 1:
+            if (x >= tile * 5 && x < tile * 6 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+                socket.send(JSON.stringify({event: "clic", player: 1, button: "addTower"}));
+                console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+            }
+            if (x >= tile * 9 && x < tile * 10 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+                socket.send(JSON.stringify({event: "clic", player: 2, button: "addTower"}));
+                console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+            }
+            break;
+        default:
+            break;
     }
 });
 
