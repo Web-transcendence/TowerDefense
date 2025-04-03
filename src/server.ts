@@ -16,13 +16,12 @@ const inputSchema = z.object({ player: z.number(), button: z.string() });
 app.use(express.static(path.join(__dirname, "../public")));
 
 class Game {
-    level: number;
+    level: number = 0;
     timer: Timer;
-    start: boolean;
+    start: boolean = false;
+    state: number = 0;
     constructor(timer: Timer) {
         this.timer = timer;
-        this.level = 0;
-        this.start = false;
     }
     toJSON() {
         return {class: "Game", level: this.level, timer: this.timer.timeLeft, start: this.start};
@@ -228,6 +227,17 @@ function gameInit(player1: Player, player2: Player, game: Game) {
         setTimeout(() => gameInit(player1, player2, game), 100);
 }
 
+function mainLoop (player1: Player, player2: Player, game: Game) {
+    if (game.state === 1) {
+        game.timer.start();
+        gameInit(player1, player2, game);
+        gameLoop(player1, player2, game);
+        enemySpawner(player1, player2, game);
+    }
+    else
+        setTimeout(() => mainLoop(player1, player2, game), 100);
+}
+
 wss.on("connection", (ws) => {
     console.log("Client connected");
     let player1 = new Player ("Player 1");
@@ -241,6 +251,9 @@ wss.on("connection", (ws) => {
             return ;
         }
         switch (data.player) {
+            case 0:
+                game.state = 1;
+                break;
             case 1:
                 player1.spawnTower();
                 break;
@@ -258,10 +271,7 @@ wss.on("connection", (ws) => {
         ws.send(JSON.stringify(game));
     }, 10);
 
-    game.timer.start();
-    gameInit(player1, player2, game);
-    gameLoop(player1, player2, game);
-    enemySpawner(player1, player2, game);
+    mainLoop(player1, player2, game);
 
     ws.on("close", () => {
         clearInterval(intervalId);

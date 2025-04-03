@@ -90,7 +90,7 @@ var Assets = /** @class */ (function () {
             "yslime0.png", "yslime1.png",
             "rslime0.png", "rslime1.png",
             "pslime0.png", "pslime1.png",
-            "dslime0.png", "dslime1.png",];
+            "dslime0.png", "dslime1.png"];
         for (var _i = 0, imageNames_1 = imageNames; _i < imageNames_1.length; _i++) {
             var name_1 = imageNames_1[_i];
             var key = name_1.split(".")[0];
@@ -343,6 +343,7 @@ canvas.addEventListener("click", function (event) {
     var y = (event.clientY - rect.top) * scaleY;
     switch (game.state) {
         case 0:
+            socket.send(JSON.stringify({ event: "clic", player: 0, button: "none" }));
             game.state = 1;
             break;
         case 1:

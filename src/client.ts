@@ -110,8 +110,7 @@ class Assets {
                             "yslime0.png", "yslime1.png",
                             "rslime0.png", "rslime1.png",
                             "pslime0.png", "pslime1.png",
-                            "dslime0.png", "dslime1.png",];
-
+                            "dslime0.png", "dslime1.png"];
         for (const name of imageNames) {
             const key = name.split(".")[0];
             const img = new Image();
@@ -379,6 +378,7 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     const y = (event.clientY - rect.top) * scaleY;
     switch (game.state) {
         case 0:
+            socket.send(JSON.stringify({event: "clic", player: 0, button: "none"}));
             game.state = 1;
             break;
         case 1:
