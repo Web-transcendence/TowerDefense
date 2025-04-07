@@ -127,6 +127,10 @@ class Tower {
             enemies.forEach(enemy => {
                 if (enemy.alive && enemy.pos <= maxpos + 50 && enemy.pos >= maxpos - 50) {
                     enemy.hp -= this.damages;
+                    if (this.effect === "slow") {
+                        enemy.speed *= 0.6;
+                        setTimeout(() => {enemy.speed /= 0.6;}, 1000);
+                    }
                 }
             });
         }

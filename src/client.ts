@@ -2,8 +2,6 @@ const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const socket = new WebSocket("ws://localhost:8080");
 
-
-
 // Main menu and tower selection
 
 function drawMenu() {
@@ -103,7 +101,8 @@ class Assets {
                             "white1.png", "white2.png", "white3.png", "white4.png",
                             "yellow1.png", "yellow2.png", "yellow3.png", "yellow4.png",
                             "ygreen1.png", "ygreen2.png", "ygreen3.png", "ygreen4.png",
-                            "addTower.png", "empty.png", "stats.png", "map1.png",
+                            "addTower.png", "empty.png", "stats.png",
+                            "map1.png", "map2.png",
                             "poop0.png", "poop1.png",
                             "bslime0.png", "bslime1.png",
                             "gslime0.png", "gslime1.png",
@@ -140,6 +139,7 @@ const tile = canvas.width / 15;
 let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
+const nmap = Math.floor(Math.random() * 2 + 1);
 
 function timeTostring(timer: number) {
     const minutes = Math.floor(timer / 60);
@@ -293,7 +293,7 @@ function drawTemplate() {
 
 function drawGame() {
     drawGrid();
-    ctx.drawImage(assets.getImage("map1")!, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(assets.getImage(`map${nmap}`)!, 0, 0, canvas.width, canvas.height);
     //drawTemplate(); // for debug use only
     drawTimer();
     drawEnemies();
