@@ -3,5 +3,5 @@
   { "type": "blue", "speed": 8, "damages" : 10, "area": true, "effect": "slow" },
   { "type": "green", "speed": 10, "damages" : 18, "area": false, "effect": "none" },
   { "type": "yellow", "speed": 12, "damages" : 8, "area": false, "effect": "none" },
-  { "type": "white", "speed": 14, "damages" : 20, "area": false, "effect": "stun" }
+  { "type": "white", "speed": 6, "damages" : 20, "area": false, "effect": "stun" }
 ]

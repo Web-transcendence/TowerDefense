@@ -73,7 +73,9 @@ class Player {
                 pos = -1;
         }
         const type = Math.floor(Math.random() * this.deck.length);
-        this.board.push(new Board(pos, this.deck[type]));
+        const newTower = this.deck[type].clone();
+        setInterval(() => newTower.attack(this.enemies), 10000 / newTower.speed);
+        this.board.push(new Board(pos, newTower));
         console.log(`${this.name}: Tower ${this.deck[type].type} spawned at position ${pos}`);
     }
     toJSON() {
@@ -88,6 +90,32 @@ class Tower {
         this.damages = damages;
         this.area = area;
         this.effect = effect;
+    }
+    attack(enemies) {
+        let maxpos = -1;
+        for (let i = 0; i < enemies.length; i++) {
+            if (enemies[i].alive && enemies[i].pos > maxpos) {
+                maxpos = enemies[i].pos;
+            }
+        }
+        if (maxpos != -1 && !this.area) {
+            for (let i = 0; i < enemies.length; i++) {
+                if (enemies[i].alive && enemies[i].pos === maxpos) {
+                    enemies[i].hp -= this.damages;
+                    break;
+                }
+            }
+        }
+        else if (maxpos != -1) {
+            enemies.forEach(enemy => {
+                if (enemy.alive && enemy.pos <= maxpos + 50 && enemy.pos >= maxpos - 50) {
+                    enemy.hp -= this.damages;
+                }
+            });
+        }
+    }
+    clone() {
+        return new Tower(this.type, this.speed, this.damages, this.area, this.effect);
     }
     toJSON() {
         return { class: "Tower", type: this.type, speed: this.speed, damages: this.damages, area: this.area, effect: this.effect, level: this.level };
@@ -155,6 +183,7 @@ function enemyLoop(player1, player2, game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
+            player1.mana += 10;
             player2.addEnemy(enemyGenerator(game));
         }
     });
@@ -167,6 +196,7 @@ function enemyLoop(player1, player2, game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
+            player2.mana += 10;
             player1.addEnemy(enemyGenerator(game));
         }
     });
