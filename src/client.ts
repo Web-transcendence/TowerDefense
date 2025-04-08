@@ -281,23 +281,23 @@ function drawButtons() {
     // Towers
     for (let i = 0; i < player1.deck.length && i < player2.deck.length; i++) {
         drawRawButton(tile * (0.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player1.deck[i].type));
-        ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level.toString()}`)!, tile * (0.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level.toString()}`)!, tile * (0.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
         ctx.fillStyle = "#eaeaea";
         ctx.fillText(`lv. ${player1.deck[i].level.toString()}`, tile * (0.5 + i), canvas.height - tile * 0.45, 50);
         drawRawButton(tile * (10.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player2.deck[i].type))
         ctx.drawImage(assets.getImage("empty")!, tile * (10.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-        ctx.fillStyle = "#eaeaea";
-        ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level.toString()}`)!, tile * (10.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.fillStyle = "#eaeaea"; //Ecrire max au lieu du level si level = 4
+        ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level.toString()}`)!, tile * (10.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
         ctx.fillText(`lv. ${player2.deck[i].level.toString()}`, tile * (10.5 + i), canvas.height - tile * 0.45, 50);
     }
 }
 
 function drawTowers() {
     player1.board.forEach(tower => {
-        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (1 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (0.75 + tower.pos % 4), tile * (1.75 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
     });
     player2.board.forEach(tower => {
-        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (10 + tower.pos % 4), tile * (2 + Math.floor(tower.pos / 4)), tile, tile);
+        ctx.drawImage(assets.getAnImage(`${tower.tower.type}${tower.tower.level.toString()}`)!, tile * (9.75 + tower.pos % 4), tile * (1.75 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
     });
 }
 
