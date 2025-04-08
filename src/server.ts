@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
-const inputSchema = z.object({ player: z.number(), button: z.string() });
+const inputSchema = z.object({ player: z.number(), button: z.number() });
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -53,8 +53,8 @@ class Timer {
 class Player {
     name: string;
     hp: number = 3;
-    mana: number = 210;
-    cost: number = 60;
+    mana: number = 180;
+    cost: number = 50;
     enemies: Enemy[];
     deck: Tower[];
     board: Board[];
@@ -85,9 +85,15 @@ class Player {
        }
        const type = Math.floor(Math.random() * this.deck.length);
        const newTower = this.deck[type].clone();
-       setInterval(() => newTower.attack(this.enemies), 10000 / newTower.speed);
+       setInterval(() => newTower.attack(this.enemies, this.deck[type].level), 10000 / newTower.speed);
        this.board.push(new Board(pos, newTower));
        console.log(`${this.name}: Tower ${this.deck[type].type} spawned at position ${pos}`);
+    }
+    upTowerRank(tower: number) {
+        if (this.mana >= 100 * Math.pow(2, this.deck[tower].level) && this.deck[tower].level < 4) {
+            this.mana -= 100 * Math.pow(2, this.deck[tower].level);
+            this.deck[tower].level += 1;
+        }
     }
     toJSON() {
         return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board};
@@ -98,38 +104,44 @@ class Tower {
     type: string;
     speed: number;
     damages: number;
-    area: boolean;
+    area: number;
     effect: string;
     level: number = 1;
-    constructor(type: string, speed: number, damages: number, area: boolean, effect: string) {
+    constructor(type: string, speed: number, damages: number, area: number, effect: string) {
         this.type = type;
         this.speed = speed;
         this.damages = damages;
         this.area = area;
         this.effect = effect;
     }
-    attack (enemies: Enemy[]) {
+    attack (enemies: Enemy[], rank: number) {
         let maxpos = -1;
         for (let i = 0; i < enemies.length; i++) {
             if (enemies[i].alive && enemies[i].pos > maxpos) {
                 maxpos = enemies[i].pos;
             }
         }
-        if (maxpos != -1 && !this.area) {
+        if (maxpos === -1)
+            return ;
+        if (this.area === 0) {
             for (let i = 0; i < enemies.length; i++) {
                 if (enemies[i].alive && enemies[i].pos === maxpos) {
-                    enemies[i].hp -= this.damages;
+                    enemies[i].hp -= this.damages * rank;
+                    if (this.effect === "stun") {
+                        enemies[i].stun = true;
+                        setTimeout(() => {enemies[i].stun = false;}, 500);
+                    }
                     break;
                 }
             }
         }
-        else if (maxpos != -1) {
+        else {
             enemies.forEach(enemy => {
-                if (enemy.alive && enemy.pos <= maxpos + 50 && enemy.pos >= maxpos - 50) {
-                    enemy.hp -= this.damages;
+                if (enemy.alive && enemy.pos <= maxpos + this.area && enemy.pos >= maxpos - this.area) {
+                    enemy.hp -= this.damages * rank;
                     if (this.effect === "slow") {
-                        enemy.speed *= 0.6;
-                        setTimeout(() => {enemy.speed /= 0.6;}, 1000);
+                        enemy.slow = 0.6;
+                        setTimeout(() => {enemy.slow = 1;}, 1000);
                     }
                 }
             });
@@ -159,16 +171,16 @@ class Enemy {
     type: string;
     hp: number;
     speed: number;
-    pos: number;
+    slow: number = 1;
+    stun:boolean = false;
+    pos: number = 0;
     damages: number;
-    alive: boolean;
+    alive: boolean = true;
     constructor(type: string, hp: number, speed: number, damages: number) {
         this.type = type;
         this.hp = hp;
         this.speed = speed;
-        this.pos = 0;
         this.damages = damages;
-        this.alive = true;
     }
     clone () {
         return(new Enemy(this.type, this.hp, this.speed, this.damages));
@@ -215,7 +227,8 @@ function enemySpawner(player1: Player, player2: Player, game: Game) {
 
 function enemyLoop (player1: Player, player2: Player, game: Game) {
     player1.enemies.forEach(enemy => {
-        enemy.pos += enemy.speed;
+        if (!enemy.stun)
+            enemy.pos += enemy.speed * enemy.slow;
         if (enemy.pos >= 1440) {
             player1.hp -= enemy.damages;
             enemy.alive = false;
@@ -228,7 +241,8 @@ function enemyLoop (player1: Player, player2: Player, game: Game) {
     });
     player1.clearDeadEnemies();
     player2.enemies.forEach(enemy => {
-        enemy.pos += enemy.speed;
+        if (!enemy.stun)
+            enemy.pos += enemy.speed * enemy.slow;
         if (enemy.pos >= 1440) {
             player2.hp -= enemy.damages;
             enemy.alive = false;
@@ -284,15 +298,20 @@ wss.on("connection", (ws) => {
             console.error(error);
             return ;
         }
-        switch (data.player) {
-            case 0:
-                game.state = 1;
+        const player = data.player === 1 ? player1 : player2;
+        switch (data.button) {
+            case 5:
+                player.spawnTower();
                 break;
-            case 1:
-                player1.spawnTower();
-                break;
+            case 4:
+            case 3:
             case 2:
-                player2.spawnTower();
+            case 1:
+            case 0:
+                player.upTowerRank(data.button);
+                break;
+            case -1:
+                game.state = 1;
                 break;
             default:
                 break;

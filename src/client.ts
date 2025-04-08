@@ -44,14 +44,11 @@ class Player {
     hp: number = 3;
     mana: number = 210;
     cost: number = 60;
-    enemies: Enemy[];
-    deck: Tower[];
-    board: Board[];
+    enemies: Enemy[] = [];
+    deck: Tower[] = [];
+    board: Board[] = [];
     constructor(name: string) {
         this.name = name;
-        this.enemies = [];
-        this.deck = [];
-        this.board = [];
     }
     addEnemy(enemy: Enemy) {
         this.enemies.push(enemy);
@@ -242,6 +239,29 @@ function drawEnemies() {
     frame += 1;
 }
 
+function getTowerColor(type: string) {
+    if (type === "red")
+        return ("#ab1e00");
+    if (type === "blue")
+        return ("#0075ab");
+    if (type === "green")
+        return ("#17b645");
+    if (type === "yellow")
+        return ("#ffe71e");
+    if (type === "white")
+        return ("#dfdfdf");
+    return ("black");
+}
+
+function drawRawButton(centerx: number, centery: number, size: number, border: string) {
+    ctx.fillStyle = border;
+    ctx.fillRect(centerx - size * 0.5 + 4, centery - size * 0.5, size - 8, size);
+    ctx.fillRect(centerx - size * 0.5, centery - size * 0.5 + 4, size, size - 8);
+    ctx.fillStyle = "#2f2f2f";
+    ctx.fillRect(centerx - size * 0.5 + 8, centery - size * 0.5 + 4, size - 16, size - 8);
+    ctx.fillRect(centerx - size * 0.5 + 4, centery - size * 0.5 + 8, size - 8, size - 16);
+}
+
 function drawButtons() {
     ctx.fillStyle = "#fcc800";
     ctx.font = "16px 'Press Start 2P'";
@@ -260,10 +280,13 @@ function drawButtons() {
     ctx.fillText(player2.mana.toString(), tile * 8.65, canvas.height - tile * 0.45, 30);
     // Towers
     for (let i = 0; i < player1.deck.length && i < player2.deck.length; i++) {
-        ctx.drawImage(assets.getImage("empty")!, tile * (0.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+        drawRawButton(tile * (0.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player1.deck[i].type));
         ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level.toString()}`)!, tile * (0.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
+        ctx.fillStyle = "#eaeaea";
         ctx.fillText(`lv. ${player1.deck[i].level.toString()}`, tile * (0.5 + i), canvas.height - tile * 0.45, 50);
+        drawRawButton(tile * (10.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player2.deck[i].type))
         ctx.drawImage(assets.getImage("empty")!, tile * (10.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+        ctx.fillStyle = "#eaeaea";
         ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level.toString()}`)!, tile * (10.5 + i) - 18, canvas.height - tile * 0.85 - 18, 36, 36);
         ctx.fillText(`lv. ${player2.deck[i].level.toString()}`, tile * (10.5 + i), canvas.height - tile * 0.45, 50);
     }
@@ -292,8 +315,8 @@ function drawTemplate() {
 }
 
 function drawGame() {
-    drawGrid();
     ctx.drawImage(assets.getImage(`map${nmap}`)!, 0, 0, canvas.width, canvas.height);
+    //drawGrid(); // for debug use only
     //drawTemplate(); // for debug use only
     drawTimer();
     drawEnemies();
@@ -378,17 +401,23 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     const y = (event.clientY - rect.top) * scaleY;
     switch (game.state) {
         case 0:
-            socket.send(JSON.stringify({event: "clic", player: 0, button: "none"}));
+            socket.send(JSON.stringify({event: "clic", player: 0, button: -1}));
             game.state = 1;
             break;
         case 1:
-            if (x >= tile * 5 && x < tile * 6 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
-                socket.send(JSON.stringify({event: "clic", player: 1, button: "addTower"}));
-                console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
-            }
-            if (x >= tile * 9 && x < tile * 10 && y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
-                socket.send(JSON.stringify({event: "clic", player: 2, button: "addTower"}));
-                console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+            if (y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
+                if (x >= 0 && x < tile * 5)
+                    socket.send(JSON.stringify({event: "clic", player: 1, button: Math.floor(x / tile)}));
+                else if (x >= tile * 5 && x < tile * 6) {
+                    socket.send(JSON.stringify({event: "clic", player: 1, button: 5}));
+                    console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+                }
+                else if (x >= tile * 9 && x < tile * 10) {
+                    socket.send(JSON.stringify({event: "clic", player: 2, button: 5}));
+                    console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
+                }
+                else if (x >= tile * 10 && x < canvas.width)
+                    socket.send(JSON.stringify({event: "clic", player: 2, button: Math.floor(x / tile) - 10}));
             }
             break;
         default:

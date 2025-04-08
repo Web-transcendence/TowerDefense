@@ -1,7 +1,7 @@
 [
-  { "type": "red", "speed": 10, "damages" : 12, "area": true, "effect": "none" },
-  { "type": "blue", "speed": 8, "damages" : 10, "area": true, "effect": "slow" },
-  { "type": "green", "speed": 10, "damages" : 18, "area": false, "effect": "none" },
-  { "type": "yellow", "speed": 12, "damages" : 8, "area": false, "effect": "none" },
-  { "type": "white", "speed": 6, "damages" : 20, "area": false, "effect": "stun" }
+  { "type": "red", "speed": 10, "damages" : 12, "area": 100, "effect": "none" },
+  { "type": "blue", "speed": 8, "damages" : 10, "area": 100, "effect": "slow" },
+  { "type": "green", "speed": 10, "damages" : 18, "area": 0, "effect": "none" },
+  { "type": "yellow", "speed": 12, "damages" : 8, "area": 0, "effect": "none" },
+  { "type": "white", "speed": 6, "damages" : 20, "area": 0, "effect": "stun" }
 ]
