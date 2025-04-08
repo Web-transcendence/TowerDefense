@@ -261,20 +261,33 @@ function drawButtons() {
         drawRawButton(tile * (0.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player1.deck[i].type));
         ctx.drawImage(assets.getImage("".concat(player1.deck[i].type).concat(player1.deck[i].level.toString())), tile * (0.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
         ctx.fillStyle = "#eaeaea";
-        ctx.fillText("lv. ".concat(player1.deck[i].level.toString()), tile * (0.5 + i), canvas.height - tile * 0.45, 50);
+        if (player1.deck[i].level !== 4)
+            ctx.fillText("lv. ".concat(player1.deck[i].level.toString()), tile * (0.5 + i), canvas.height - tile * 0.45, 50);
+        else
+            ctx.fillText("lv. max", tile * (0.5 + i), canvas.height - tile * 0.45, 50);
         drawRawButton(tile * (10.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player2.deck[i].type));
-        ctx.drawImage(assets.getImage("empty"), tile * (10.5 + i) - 35, canvas.height - tile * 0.75 - 35, 70, 70);
         ctx.fillStyle = "#eaeaea";
         ctx.drawImage(assets.getImage("".concat(player2.deck[i].type).concat(player2.deck[i].level.toString())), tile * (10.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
-        ctx.fillText("lv. ".concat(player2.deck[i].level.toString()), tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+        if (player2.deck[i].level !== 4)
+            ctx.fillText("lv. ".concat(player2.deck[i].level.toString()), tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+        else
+            ctx.fillText("lv. max", tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+    }
+}
+function getTowerLevel(tower, pNum) {
+    var player = pNum === 1 ? player1 : player2;
+    for (var i = 0; i < player.deck.length; i++) {
+        if (player.deck[i].type === tower.type) {
+            return (player.deck[i].level);
+        }
     }
 }
 function drawTowers() {
     player1.board.forEach(function (tower) {
-        ctx.drawImage(assets.getAnImage("".concat(tower.tower.type).concat(tower.tower.level.toString())), tile * (0.75 + tower.pos % 4), tile * (1.75 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
+        ctx.drawImage(assets.getImage("".concat(tower.tower.type).concat(getTowerLevel(tower.tower, 1))), tile * (0.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
     });
     player2.board.forEach(function (tower) {
-        ctx.drawImage(assets.getAnImage("".concat(tower.tower.type).concat(tower.tower.level.toString())), tile * (9.75 + tower.pos % 4), tile * (1.75 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
+        ctx.drawImage(assets.getImage("".concat(tower.tower.type).concat(getTowerLevel(tower.tower, 2))), tile * (9.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
     });
 }
 function drawTemplate() {
@@ -361,6 +374,10 @@ socket.onmessage = function (event) {
             console.warn("Unknown type received:", data);
     }
 };
+window.addEventListener("keydown", function (event) {
+    if (event.key === "b")
+        socket.send(JSON.stringify({ event: "clic", player: 0, button: -2 }));
+});
 canvas.addEventListener("click", function (event) {
     var rect = canvas.getBoundingClientRect();
     var scaleX = canvas.width / rect.width;

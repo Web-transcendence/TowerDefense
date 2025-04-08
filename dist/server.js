@@ -60,7 +60,7 @@ class Player {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
     }
     spawnTower() {
-        if (this.mana < this.cost || this.board.length > 20) {
+        if (this.mana < this.cost || this.board.length >= 20) {
             console.log(`${this.name}: Mana insufficient or board full`);
             return;
         }
@@ -274,6 +274,10 @@ wss.on("connection", (ws) => {
                 break;
             case -1:
                 game.state = 1;
+                break;
+            case -2:
+                player1.mana += 100;
+                player2.mana += 100;
                 break;
             default:
                 break;
