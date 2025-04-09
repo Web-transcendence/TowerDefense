@@ -474,7 +474,7 @@ socket.onmessage = function (event) {
 };
 window.addEventListener("keydown", function (event) {
     if (event.key === "b")
-        socket.send(JSON.stringify({ event: "keyInput", player: 0, button: -2 }));
+        socket.send(JSON.stringify({ event: "keyDown", player: 0, button: -2 }));
 });
 canvas.addEventListener("click", function (event) {
     var rect = canvas.getBoundingClientRect();
@@ -503,15 +503,15 @@ canvas.addEventListener("click", function (event) {
         case 1:
             if (y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
                 if (x >= 0 && x < tile * 5)
-                    socket.send(JSON.stringify({ event: "clic", player: 1, button: Math.floor(x / tile) }));
+                    socket.send(JSON.stringify({ event: "click", player: 1, button: Math.floor(x / tile) }));
                 else if (x >= tile * 6 && x < tile * 7) {
-                    socket.send(JSON.stringify({ event: "clic", player: 1, button: 5 }));
+                    socket.send(JSON.stringify({ event: "click", player: 1, button: 5 }));
                 }
                 else if (x >= tile * 8 && x < tile * 9) {
-                    socket.send(JSON.stringify({ event: "clic", player: 2, button: 5 }));
+                    socket.send(JSON.stringify({ event: "click", player: 2, button: 5 }));
                 }
                 else if (x >= tile * 10 && x < canvas.width)
-                    socket.send(JSON.stringify({ event: "clic", player: 2, button: Math.floor(x / tile) - 10 }));
+                    socket.send(JSON.stringify({ event: "click", player: 2, button: Math.floor(x / tile) - 10 }));
             }
             break;
         default:

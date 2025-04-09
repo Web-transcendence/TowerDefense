@@ -295,8 +295,13 @@ wss.on("connection", (ws) => {
     let game = new Game(new Timer(0, 4));
 
     ws.on("message", (message) => {
-        let {data, success} = inputSchema.safeParse(JSON.parse(message.toString()));
-        if (success && data) {
+        const msg = JSON.parse(message.toString());
+        if (msg.event === "click" || msg.event === "keyDown") {
+            const {data, success, error} = inputSchema.safeParse(msg);
+            if (!success || !data) {
+                console.log(error);
+                return ;
+            }
             const player = data.player === 1 ? player1 : player2;
             switch (data.button) {
                 case 5:
@@ -320,21 +325,19 @@ wss.on("connection", (ws) => {
                     break;
             }
         }
-        else {
-            let {data, success, error} = towerSchema.safeParse(JSON.parse(message.toString()));
-            if (success && data) {
-                player1.deck.splice(0, player1.deck.length);
-                player1.deck.push(allTowers[data.t1].clone());
-                player1.deck.push(allTowers[data.t2].clone());
-                player1.deck.push(allTowers[data.t3].clone());
-                player1.deck.push(allTowers[data.t4].clone());
-                player1.deck.push(allTowers[data.t5].clone());
-                game.state = 1;
-            }
-            else {
+        else if (msg.event === "towerInit") {
+            const {data, success, error} = towerSchema.safeParse(JSON.parse(message.toString()));
+            if (!success || !data) {
                 console.log(error);
                 return;
             }
+            player1.deck.splice(0, player1.deck.length);
+            player1.deck.push(allTowers[data.t1].clone());
+            player1.deck.push(allTowers[data.t2].clone());
+            player1.deck.push(allTowers[data.t3].clone());
+            player1.deck.push(allTowers[data.t4].clone());
+            player1.deck.push(allTowers[data.t5].clone());
+            game.state = 1;
         }
     });
 
