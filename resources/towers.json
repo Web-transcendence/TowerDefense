@@ -3,5 +3,10 @@
   { "type": "blue", "speed": 8, "damages" : 10, "area": 100, "effect": "slow" },
   { "type": "green", "speed": 10, "damages" : 18, "area": 0, "effect": "none" },
   { "type": "yellow", "speed": 12, "damages" : 8, "area": 0, "effect": "none" },
-  { "type": "white", "speed": 6, "damages" : 20, "area": 0, "effect": "stun" }
+  { "type": "white", "speed": 6, "damages" : 20, "area": 0, "effect": "stun" },
+  { "type": "black", "speed":  14, "damages": 14, "area": 0, "effect": "none" },
+  { "type": "orange", "speed":  14, "damages": 14, "area": 0, "effect": "none" },
+  { "type": "pink", "speed":  14, "damages": 14, "area": 0, "effect": "none" },
+  { "type": "violet", "speed":  14, "damages": 14, "area": 0, "effect": "none" },
+  { "type": "ygreen", "speed":  14, "damages": 14, "area": 0, "effect": "none" }
 ]

@@ -11,6 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const inputSchema = z.object({ player: z.number(), button: z.number() });
+const towerSchema = z.object({ t1: z.number(), t2: z.number(), t3: z.number(), t4: z.number(), t5: z.number() });
 app.use(express.static(path.join(__dirname, "../public")));
 class Game {
     constructor(timer) {
@@ -48,10 +49,13 @@ class Player {
         this.hp = 3;
         this.mana = 180;
         this.cost = 50;
-        this.name = name;
         this.enemies = [];
-        this.deck = loadTowers(path.join(__dirname, "../resources/towers.json"));
+        this.deck = [];
         this.board = [];
+        this.name = name;
+        for (let i = 0; i < 5; i++) {
+            this.deck.push(allTowers[i].clone());
+        }
     }
     addEnemy(enemy) {
         this.enemies.push(enemy);
@@ -175,6 +179,7 @@ function loadEnemies(filePath) {
     return (jsonData.enemies.map((level) => level.map(enemy => new Enemy(enemy.type, enemy.hp, enemy.speed, enemy.damages))));
 }
 const enemies = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
+const allTowers = loadTowers(path.join(__dirname, "../resources/towers.json"));
 function enemyGenerator(game) {
     let wave;
     if (game.level != 2)
@@ -255,32 +260,46 @@ wss.on("connection", (ws) => {
     let player2 = new Player("Player 2");
     let game = new Game(new Timer(0, 4));
     ws.on("message", (message) => {
-        const { data, success, error } = inputSchema.safeParse(JSON.parse(message.toString()));
-        if (!success || !data) {
-            console.error(error);
-            return;
+        let { data, success } = inputSchema.safeParse(JSON.parse(message.toString()));
+        if (success && data) {
+            const player = data.player === 1 ? player1 : player2;
+            switch (data.button) {
+                case 5:
+                    player.spawnTower();
+                    break;
+                case 4:
+                case 3:
+                case 2:
+                case 1:
+                case 0:
+                    player.upTowerRank(data.button);
+                    break;
+                case -1:
+                    game.state = 1;
+                    break;
+                case -2:
+                    player1.mana += 100;
+                    player2.mana += 100;
+                    break;
+                default:
+                    break;
+            }
         }
-        const player = data.player === 1 ? player1 : player2;
-        switch (data.button) {
-            case 5:
-                player.spawnTower();
-                break;
-            case 4:
-            case 3:
-            case 2:
-            case 1:
-            case 0:
-                player.upTowerRank(data.button);
-                break;
-            case -1:
+        else {
+            let { data, success, error } = towerSchema.safeParse(JSON.parse(message.toString()));
+            if (success && data) {
+                player1.deck.splice(0, player1.deck.length);
+                player1.deck.push(allTowers[data.t1].clone());
+                player1.deck.push(allTowers[data.t2].clone());
+                player1.deck.push(allTowers[data.t3].clone());
+                player1.deck.push(allTowers[data.t4].clone());
+                player1.deck.push(allTowers[data.t5].clone());
                 game.state = 1;
-                break;
-            case -2:
-                player1.mana += 100;
-                player2.mana += 100;
-                break;
-            default:
-                break;
+            }
+            else {
+                console.log(error);
+                return;
+            }
         }
     });
     const intervalId = setInterval(() => {
@@ -288,6 +307,9 @@ wss.on("connection", (ws) => {
         ws.send(JSON.stringify(player2));
         ws.send(JSON.stringify(game));
     }, 10);
+    allTowers.forEach((tower) => {
+        ws.send(JSON.stringify(tower));
+    });
     mainLoop(player1, player2, game);
     ws.on("close", () => {
         clearInterval(intervalId);

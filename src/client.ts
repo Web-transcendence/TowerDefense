@@ -4,19 +4,59 @@ const socket = new WebSocket("ws://localhost:8080");
 
 // Main menu and tower selection
 
+function aoeornot(area: number) {
+    if (area !== 0)
+        return ("area dmg");
+    return ("mono dmg");
+}
+
+function isSelected(i: number) {
+    if (selected.includes(i))
+        return ("#b329d1");
+    return ("#eaeaea");
+}
+
 function drawMenu() {
+    // Background
     ctx.drawImage(assets.getImage("main")!, 0, 0, canvas.width, canvas.height);
+    // Title
     ctx.drawImage(assets.getAnImage("rslime")!, canvas.width * 0.1, canvas.height * 0.06, 170, 170);
     ctx.drawImage(assets.getAnImage("gslime")!, canvas.width * 0.18, canvas.height * 0.17, 80, 80);
     ctx.drawImage(assets.getAnImage("pslime")!, canvas.width * 0.11, canvas.height * 0.18, 80, 80);
     frame += 0.75;
     ctx.fillStyle = "#b329d1";
     ctx.strokeStyle = "#0d0d0d";
-    ctx.lineWidth = 20;
+    ctx.lineWidth = tile / 4;
     ctx.textAlign = "center";
     ctx.font = "64px 'Press Start 2P'";
     ctx.strokeText("Slime Defender", canvas.width * 0.545, canvas.height * 0.25, canvas.width * 0.6);
     ctx.fillText("Slime Defender", canvas.width * 0.545, canvas.height * 0.25, canvas.width * 0.6);
+    // Tower Selection
+    for (let i = 0; i < allTowers.length; i++) {
+        let centerx = (0.18 + Math.floor(i % 5) * 0.16) * canvas.width;
+        let centery = (0.54 + Math.floor(i / 5) * 0.16) * canvas.height;
+        drawRawButton(centerx, centery, canvas.width * 0.15, canvas.height * 0.15, isSelected(i));
+        ctx.drawImage(assets.getImage(`${allTowers[i].type}4`)!, centerx - tile * 1.1, centery - tile * 0.6, canvas.height * 0.11, canvas.height * 0.11);
+        ctx.fillStyle = "#eaeaea";
+        ctx.textAlign = "left";
+        ctx.font = `${tile / 5}px 'Press Start 2P'`;
+        ctx.fillText(`atk: ${allTowers[i].damages}`, centerx, centery - tile * 0.35, canvas.width * 0.06);
+        ctx.fillText(`spd: ${allTowers[i].speed}`, centerx, centery - tile * 0.05, canvas.width * 0.06);
+        ctx.fillText(aoeornot(allTowers[i].area), centerx, centery + tile * 0.25, canvas.width * 0.06);
+        if (allTowers[i].effect !== "none")
+            ctx.fillText(allTowers[i].effect, centerx, centery + tile * 0.55, canvas.width * 0.06);
+    }
+    // Start button
+    ctx.textAlign = "center";
+    ctx.font = `${tile / 4.2}px 'Press Start 2P'`;
+    if (selected.length === 5) {
+        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.25, canvas.height * 0.1, "#b329d1");
+        ctx.fillText("Click to start", canvas.width * 0.5, canvas.height * 0.91, canvas.width * 0.22);
+    }
+    else {
+        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.25, canvas.height * 0.1, "#eaeaea");
+        ctx.fillText("Select 5 rocks", canvas.width * 0.5, canvas.height * 0.91, canvas.width * 0.22);
+    }
 }
 
 // Game classes and functions
@@ -61,10 +101,10 @@ class Tower {
     type: string;
     speed: number;
     damages: number;
-    area: boolean;
+    area: number;
     effect: string;
     level: number;
-    constructor(type: string, speed: number, damages: number, area: boolean, effect: string, level: number) {
+    constructor(type: string, speed: number, damages: number, area: number, effect: string, level: number) {
         this.type = type;
         this.speed = speed;
         this.damages = damages;
@@ -139,6 +179,8 @@ let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
 const nmap = Math.floor(Math.random() * 5);
+let allTowers : Tower[] = [];
+let selected : number[] = [];
 
 function timeTostring(timer: number) {
     const minutes = Math.floor(timer / 60);
@@ -244,7 +286,7 @@ function drawEnemies() {
             ctx.drawImage(assets.getAnImage(enemy.type)!, -1 * (enemyPosx(enemy.pos, 1) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
             ctx.restore();
         }
-        ctx.fillStyle = "#fcc800";
+        ctx.fillStyle = "#eaeaea";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 1), enemyPosy(enemy.pos) + 28);
@@ -258,7 +300,7 @@ function drawEnemies() {
             ctx.drawImage(assets.getAnImage(enemy.type)!, -1 * (enemyPosx(enemy.pos, 2) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
             ctx.restore();
         }
-        ctx.fillStyle = "#fcc800";
+        ctx.fillStyle = "#eaeaea";
         ctx.font = "16px 'Press Start 2P'";
         ctx.textAlign = "center";
         ctx.fillText(enemy.hp.toString(), enemyPosx(enemy.pos, 2), enemyPosy(enemy.pos) + 28);
@@ -277,6 +319,16 @@ function getTowerColor(type: string) {
         return ("#ffe71e");
     if (type === "white")
         return ("#dfdfdf");
+    if (type === "black")
+        return ("#030303")
+    if (type === "orange")
+        return ("#ff8000")
+    if (type === "pink")
+        return ("#e74fff")
+    if (type === "violet")
+        return ("#b329d1")
+    if (type === "ygreen")
+        return ("#b8dc04")
     return ("black");
 }
 
@@ -445,6 +497,9 @@ socket.onmessage = function (event) {
                 player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             });
             break;
+        case "Tower":
+            allTowers.push(new Tower(data.type, data.speed, data.damages, data.area, data.effect, data.level));
+            break;
         default:
             console.warn("Unknown type received:", data);
     }
@@ -452,7 +507,7 @@ socket.onmessage = function (event) {
 
 window.addEventListener("keydown", (event) => {
     if (event.key === "b")
-        socket.send(JSON.stringify({event: "clic", player: 0, button: -2}));
+        socket.send(JSON.stringify({event: "keyInput", player: 0, button: -2}));
 });
 
 canvas.addEventListener("click", (event: MouseEvent) => {
@@ -463,8 +518,21 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     const y = (event.clientY - rect.top) * scaleY;
     switch (game.state) {
         case 0:
-            socket.send(JSON.stringify({event: "clic", player: 0, button: -1}));
-            game.state = 1;
+            if (x >= 0.1 * canvas.width && x < canvas.width * 0.9 && y >= 0.46 * canvas.height && y < 0.78 * canvas.height) {
+                const select = Math.floor((x - 0.1 * canvas.width) / (canvas.width * 0.16)) + 5 * Math.floor((y - 0.46 * canvas.height) / (canvas.height * 0.16));
+                if (selected.includes(select)) {
+                    const index = selected.indexOf(select);
+                    if (index !== -1) {
+                        selected.splice(index, 1);
+                    }
+                }
+                else if (selected.length < 5)
+                    selected.push(select);
+            }
+            if (selected.length === 5 && x >= 0.375 * canvas.width && x < 0.625 * canvas.width && y >= 0.85 * canvas.height && y < 0.95 * canvas.height) {
+                socket.send(JSON.stringify({event: "towerInit", t1: selected[0], t2: selected[1], t3: selected[2], t4: selected[3], t5: selected[4]}));
+                game.state = 1;
+            }
             break;
         case 1:
             if (y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
@@ -472,11 +540,9 @@ canvas.addEventListener("click", (event: MouseEvent) => {
                     socket.send(JSON.stringify({event: "clic", player: 1, button: Math.floor(x / tile)}));
                 else if (x >= tile * 6 && x < tile * 7) {
                     socket.send(JSON.stringify({event: "clic", player: 1, button: 5}));
-                    console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
                 }
                 else if (x >= tile * 8 && x < tile * 9) {
                     socket.send(JSON.stringify({event: "clic", player: 2, button: 5}));
-                    console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
                 }
                 else if (x >= tile * 10 && x < canvas.width)
                     socket.send(JSON.stringify({event: "clic", player: 2, button: Math.floor(x / tile) - 10}));
