@@ -3,16 +3,18 @@ const ctx = canvas.getContext("2d");
 const socket = new WebSocket("ws://localhost:8080");
 // Main menu and tower selection
 function drawMenu() {
-    ctx.fillStyle = "grey";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(assets.getImage("main"), 0, 0, canvas.width, canvas.height);
     ctx.drawImage(assets.getAnImage("rslime"), canvas.width * 0.1, canvas.height * 0.06, 170, 170);
     ctx.drawImage(assets.getAnImage("gslime"), canvas.width * 0.18, canvas.height * 0.17, 80, 80);
     ctx.drawImage(assets.getAnImage("pslime"), canvas.width * 0.11, canvas.height * 0.18, 80, 80);
     frame += 0.75;
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#b329d1";
+    ctx.strokeStyle = "#0d0d0d";
+    ctx.lineWidth = 20;
     ctx.textAlign = "center";
     ctx.font = "64px 'Press Start 2P'";
-    ctx.fillText("Slime Defender", canvas.width * 0.55, canvas.height * 0.25, canvas.width * 0.6);
+    ctx.strokeText("Slime Defender", canvas.width * 0.545, canvas.height * 0.25, canvas.width * 0.6);
+    ctx.fillText("Slime Defender", canvas.width * 0.545, canvas.height * 0.25, canvas.width * 0.6);
 }
 // Game classes and functions
 class Game {
@@ -78,8 +80,8 @@ class Assets {
             "white1.png", "white2.png", "white3.png", "white4.png",
             "yellow1.png", "yellow2.png", "yellow3.png", "yellow4.png",
             "ygreen1.png", "ygreen2.png", "ygreen3.png", "ygreen4.png",
-            "addTower.png", "empty.png", "stats.png",
-            "map0.png", "map1.png", "map2.png",
+            "main.png", "addTower.png", "hp.png", "mana.png",
+            "map0.png", "map1.png", "map2.png", "map3.png", "map4.png",
             "poop0.png", "poop1.png",
             "bslime0.png", "bslime1.png",
             "gslime0.png", "gslime1.png",
@@ -115,7 +117,7 @@ const tile = canvas.width / 15;
 let game = new Game;
 let player1 = new Player("Player 1");
 let player2 = new Player("Player 2");
-const nmap = Math.floor(Math.random() * 3);
+const nmap = Math.floor(Math.random() * 5);
 function timeTostring(timer) {
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
@@ -140,16 +142,43 @@ function drawGrid() {
     }
 }
 function drawTimer() {
-    ctx.fillStyle = "#fcc800";
+    switch (nmap) {
+        case 4:
+            ctx.fillStyle = "#dfdfdf";
+            break;
+        case 3:
+            ctx.fillStyle = "#a08829";
+            break;
+        case 2:
+            ctx.fillStyle = "#ab1e00";
+            break;
+        case 1:
+            ctx.fillStyle = "#17b645";
+            break;
+        case 0:
+            ctx.fillStyle = "#0075ab";
+            break;
+        default:
+            ctx.fillStyle = "#fcc800";
+            break;
+    }
+    ctx.strokeStyle = "#0d0d0d";
+    ctx.lineWidth = 8;
     ctx.font = "40px 'Press Start 2P'";
     ctx.textAlign = "center";
     let timer = game.timer;
-    if (game.start)
-        ctx.fillText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + 23);
-    else if (timer > 1)
-        ctx.fillText(timeTostring(timer - 1), canvas.width * 0.5, canvas.height * 0.5 + 23);
-    else
+    if (game.start) {
+        ctx.strokeText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+        ctx.fillText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+    }
+    else if (timer > 1) {
+        ctx.strokeText(timeTostring(timer - 1), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+        ctx.fillText(timeTostring(timer - 1), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+    }
+    else {
+        ctx.strokeText("Go !!!", canvas.width * 0.5, canvas.height * 0.5 + 23);
         ctx.fillText("Go !!!", canvas.width * 0.5, canvas.height * 0.5 + 23);
+    }
 }
 function enemyPosx(pos, player) {
     if (pos < 480) {
@@ -225,46 +254,62 @@ function getTowerColor(type) {
         return ("#dfdfdf");
     return ("black");
 }
-function drawRawButton(centerx, centery, size, border) {
+function drawRawButton(centerx, centery, sizex, sizey, border) {
+    const old = ctx.fillStyle;
     ctx.fillStyle = border;
-    ctx.fillRect(centerx - size * 0.5 + 4, centery - size * 0.5, size - 8, size);
-    ctx.fillRect(centerx - size * 0.5, centery - size * 0.5 + 4, size, size - 8);
-    ctx.fillStyle = "#2f2f2f";
-    ctx.fillRect(centerx - size * 0.5 + 8, centery - size * 0.5 + 4, size - 16, size - 8);
-    ctx.fillRect(centerx - size * 0.5 + 4, centery - size * 0.5 + 8, size - 8, size - 16);
+    ctx.fillRect(centerx - sizex * 0.5 + 4, centery - sizey * 0.5, sizex - 8, sizey);
+    ctx.fillRect(centerx - sizex * 0.5, centery - sizey * 0.5 + 4, sizex, sizey - 8);
+    ctx.fillStyle = "#0d0d0d";
+    ctx.fillRect(centerx - sizex * 0.5 + 8, centery - sizey * 0.5 + 4, sizex - 16, sizey - 8);
+    ctx.fillRect(centerx - sizex * 0.5 + 4, centery - sizey * 0.5 + 8, sizex - 8, sizey - 16);
+    ctx.fillStyle = old;
 }
 function drawButtons() {
     ctx.fillStyle = "#fcc800";
     ctx.font = "16px 'Press Start 2P'";
     ctx.textAlign = "center";
     // addTower
-    ctx.drawImage(assets.getImage("addTower"), tile * 5.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.drawImage(assets.getImage("addTower"), tile * 9.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.fillText(player1.cost.toString(), tile * 5.5, canvas.height - tile * 0.75 + 22);
-    ctx.fillText(player2.cost.toString(), tile * 9.5, canvas.height - tile * 0.75 + 22);
+    ctx.drawImage(assets.getImage("addTower"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.drawImage(assets.getImage("addTower"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
+    ctx.fillText(player1.cost.toString(), tile * 6.5, canvas.height - tile * 0.75 + 22);
+    ctx.fillText(player2.cost.toString(), tile * 8.5, canvas.height - tile * 0.75 + 22);
     // stats
-    ctx.drawImage(assets.getImage("stats"), tile * 6.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.drawImage(assets.getImage("stats"), tile * 8.5 - 35, canvas.height - tile * 0.75 - 35, 70, 70);
-    ctx.fillText(player1.hp.toString(), tile * 6.65, canvas.height - tile * 0.8);
-    ctx.fillText(player1.mana.toString(), tile * 6.65, canvas.height - tile * 0.45, 30);
-    ctx.fillText(player2.hp.toString(), tile * 8.65, canvas.height - tile * 0.8);
-    ctx.fillText(player2.mana.toString(), tile * 8.65, canvas.height - tile * 0.45, 30);
+    drawRawButton(tile * 5.5, canvas.height - tile * 0.75, tile * 0.9, tile * 0.9, "#0096ff");
+    ctx.drawImage(assets.getImage("mana"), tile * 5.35, canvas.height - tile * 1.05, tile * 0.3, tile * 0.3);
+    drawRawButton(tile * 9.5, canvas.height - tile * 0.75, tile * 0.9, tile * 0.9, "#0096ff");
+    ctx.drawImage(assets.getImage("mana"), tile * 9.35, canvas.height - tile * 1.05, tile * 0.3, tile * 0.3);
+    ctx.fillStyle = "#0096ff";
+    ctx.fillText(player1.mana.toString(), tile * 5.5, canvas.height - tile * 0.45, 50);
+    ctx.fillText(player2.mana.toString(), tile * 9.5, canvas.height - tile * 0.45, 50);
     // Towers
     for (let i = 0; i < player1.deck.length && i < player2.deck.length; i++) {
-        drawRawButton(tile * (0.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player1.deck[i].type));
-        ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level.toString()}`), tile * (0.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
+        // Player 1
+        drawRawButton(tile * (0.5 + i), canvas.height - tile * 0.75, tile * 0.9, tile * 1.3, getTowerColor(player1.deck[i].type));
+        ctx.drawImage(assets.getImage(`${player1.deck[i].type}${player1.deck[i].level}`), tile * (0.5 + i) - 28, canvas.height - tile - 28, 56, 56);
         ctx.fillStyle = "#eaeaea";
-        if (player1.deck[i].level !== 4)
-            ctx.fillText(`lv. ${player1.deck[i].level.toString()}`, tile * (0.5 + i), canvas.height - tile * 0.45, 50);
+        if (player1.deck[i].level !== 4) {
+            ctx.fillText(`Lv. ${player1.deck[i].level}`, tile * (0.5 + i), canvas.height - tile * 0.55, 50);
+            ctx.fillText(`Up: ${100 * Math.pow(2, player1.deck[i].level)}`, tile * (0.5 + i), canvas.height - tile * 0.25, 50);
+        }
         else
-            ctx.fillText(`lv. max`, tile * (0.5 + i), canvas.height - tile * 0.45, 50);
-        drawRawButton(tile * (10.5 + i), canvas.height - tile * 0.75, 70, getTowerColor(player2.deck[i].type));
+            ctx.fillText(`Lv. max`, tile * (0.5 + i), canvas.height - tile * 0.35, 50);
+        // Player 2
+        drawRawButton(tile * (10.5 + i), canvas.height - tile * 0.75, tile * 0.9, tile * 1.3, getTowerColor(player2.deck[i].type));
         ctx.fillStyle = "#eaeaea";
-        ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level.toString()}`), tile * (10.5 + i) - 28, canvas.height - tile * 0.85 - 28, 56, 56);
-        if (player2.deck[i].level !== 4)
-            ctx.fillText(`lv. ${player2.deck[i].level.toString()}`, tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+        ctx.drawImage(assets.getImage(`${player2.deck[i].type}${player2.deck[i].level}`), tile * (10.5 + i) - 28, canvas.height - tile - 28, 56, 56);
+        if (player2.deck[i].level !== 4) {
+            ctx.fillText(`Lv. ${player2.deck[i].level}`, tile * (10.5 + i), canvas.height - tile * 0.55, 50);
+            ctx.fillText(`Up: ${100 * Math.pow(2, player2.deck[i].level)}`, tile * (10.5 + i), canvas.height - tile * 0.25, 50);
+        }
         else
-            ctx.fillText(`lv. max`, tile * (10.5 + i), canvas.height - tile * 0.45, 50);
+            ctx.fillText(`Lv. max`, tile * (10.5 + i), canvas.height - tile * 0.35, 50);
+    }
+    // HP
+    for (let j = 0; j < player1.hp; j++) {
+        ctx.drawImage(assets.getImage("hp"), tile * (0.1 + j * 0.6), tile * 0.1, tile * 0.5, tile * 0.5);
+    }
+    for (let k = 0; k < player2.hp; k++) {
+        ctx.drawImage(assets.getImage("hp"), canvas.width - tile * (0.6 + k * 0.6), tile * 0.1, tile * 0.5, tile * 0.5);
     }
 }
 function getTowerLevel(tower, pNum) {
@@ -277,10 +322,10 @@ function getTowerLevel(tower, pNum) {
 }
 function drawTowers() {
     player1.board.forEach(tower => {
-        ctx.drawImage(assets.getImage(`${tower.tower.type}${getTowerLevel(tower.tower, 1)}`), tile * (0.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
+        ctx.drawImage(assets.getImage(`${tower.tower.type}${getTowerLevel(tower.tower, 1)}`), tile * (0.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.4, tile * 1.4);
     });
     player2.board.forEach(tower => {
-        ctx.drawImage(assets.getImage(`${tower.tower.type}${getTowerLevel(tower.tower, 2)}`), tile * (9.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.5, tile * 1.5);
+        ctx.drawImage(assets.getImage(`${tower.tower.type}${getTowerLevel(tower.tower, 2)}`), tile * (9.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.4, tile * 1.4);
     });
 }
 function drawTemplate() {
@@ -386,11 +431,11 @@ canvas.addEventListener("click", (event) => {
             if (y >= canvas.height - tile * 1.25 && y < canvas.height - tile * 0.25) {
                 if (x >= 0 && x < tile * 5)
                     socket.send(JSON.stringify({ event: "clic", player: 1, button: Math.floor(x / tile) }));
-                else if (x >= tile * 5 && x < tile * 6) {
+                else if (x >= tile * 6 && x < tile * 7) {
                     socket.send(JSON.stringify({ event: "clic", player: 1, button: 5 }));
                     console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
                 }
-                else if (x >= tile * 9 && x < tile * 10) {
+                else if (x >= tile * 8 && x < tile * 9) {
                     socket.send(JSON.stringify({ event: "clic", player: 2, button: 5 }));
                     console.log(`Clic détecté aux coordonnées : (${x}, ${y})`);
                 }

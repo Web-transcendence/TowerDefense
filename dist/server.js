@@ -186,7 +186,7 @@ function enemyGenerator(game) {
     return (enemies[game.level][wave].clone());
 }
 function enemySpawner(player1, player2, game) {
-    if (game.start && game.timer.timeLeft % 7 === 4) {
+    if (game.start && game.timer.timeLeft % 8 === 7) { // Change this value to control the spawn rate (%)
         player1.addEnemy(enemyGenerator(game));
         player2.addEnemy(enemyGenerator(game));
     }
