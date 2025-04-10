@@ -21,6 +21,7 @@ class Game {
     timer: Timer;
     start: boolean = false;
     state: number = 0;
+    boss: boolean = false;
     constructor(timer: Timer) {
         this.timer = timer;
     }
@@ -258,16 +259,41 @@ function enemyLoop (player1: Player, player2: Player, game: Game) {
     player2.clearDeadEnemies();
 }
 
+// function bossLoop(player1: Player, player2: Player) {
+//     let
+//     player1.enemies.splice(0, player1.enemies.length);
+//     player2.enemies.splice(0, player2.enemies.length);
+// }
+
 function gameLoop(player1: Player, player2: Player, game: Game) {
     if (game.start) {
-        enemyLoop(player1, player2, game);
+        if (game.timer.timeLeft !== 0) {
+            enemyLoop(player1, player2, game);
+            game.boss = false;
+        } else {
+            if (!game.boss) {
+                player1.enemies.splice(0, player1.enemies.length);
+                player2.enemies.splice(0, player2.enemies.length);
+                player1.enemies.push(new Enemy("bslime", 1000, 1, 2)); // Boss here
+                player2.enemies.push(new Enemy("bslime", 1000, 1, 2));
+            }
+            enemyLoop(player1, player2, game);
+            if (player1.enemies.length === 0 && player2.enemies.length === 0) {
+                game.level = 2;
+                game.timer = new Timer(1, 40);
+                game.timer.start();
+                player1.enemies.push(enemyGenerator(game));
+                player2.enemies.push(enemyGenerator(game));
+            }
+            game.boss = true;
+        }
     }
     setTimeout(() => gameLoop(player1, player2, game), 10);
 }
 
 function gameInit(player1: Player, player2: Player, game: Game) {
     if (game.timer.timeLeft === 0) {
-        game.timer = new Timer(1, 40);
+        game.timer = new Timer(1, 40); // Duree de la vague 1
         game.start = true;
         player1.addEnemy(enemies[0][0].clone());
         player2.addEnemy(enemies[0][0].clone());

@@ -42,15 +42,21 @@ function drawMenu() {
         if (allTowers[i].effect !== "none")
             ctx.fillText(allTowers[i].effect, centerx, centery + tile * 0.55, canvas.width * 0.06);
     }
+    // Random button
+    drawRawButton(canvas.width * 0.63, canvas.height * 0.9, canvas.width * 0.06, canvas.height * 0.06, "#eaeaea");
+    if (rdmhover)
+        ctx.drawImage(assets.getImage("randomh"), canvas.width * 0.634, canvas.height * 0.9 - tile * 0.125, tile * 0.25, tile * 0.25);
+    else
+        ctx.drawImage(assets.getImage("random"), canvas.width * 0.634, canvas.height * 0.9 - tile * 0.125, tile * 0.25, tile * 0.25);
     // Start button
     ctx.textAlign = "center";
     ctx.font = `${tile / 4.2}px 'Press Start 2P'`;
     if (selected.length === 5) {
-        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.25, canvas.height * 0.1, "#b329d1");
+        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.26, canvas.height * 0.1, "#b329d1");
         ctx.fillText("Click to start", canvas.width * 0.5, canvas.height * 0.91, canvas.width * 0.22);
     }
     else {
-        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.25, canvas.height * 0.1, "#eaeaea");
+        drawRawButton(canvas.width * 0.5, canvas.height * 0.9, canvas.width * 0.26, canvas.height * 0.1, "#eaeaea");
         ctx.fillText("Select 5 rocks", canvas.width * 0.5, canvas.height * 0.91, canvas.width * 0.22);
     }
 }
@@ -118,7 +124,7 @@ class Assets {
             "white1.png", "white2.png", "white3.png", "white4.png",
             "yellow1.png", "yellow2.png", "yellow3.png", "yellow4.png",
             "ygreen1.png", "ygreen2.png", "ygreen3.png", "ygreen4.png",
-            "main.png", "addTower.png", "hp.png", "mana.png",
+            "main.png", "addTower.png", "hp.png", "mana.png", "random.png", "randomh.png",
             "map0.png", "map1.png", "map2.png", "map3.png", "map4.png",
             "poop0.png", "poop1.png",
             "bslime0.png", "bslime1.png",
@@ -158,6 +164,7 @@ let player2 = new Player("Player 2");
 const nmap = Math.floor(Math.random() * 5);
 let allTowers = [];
 let selected = [];
+let rdmhover = false;
 function timeTostring(timer) {
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
@@ -488,9 +495,17 @@ canvas.addEventListener("click", (event) => {
                 else if (selected.length < 5)
                     selected.push(select);
             }
-            if (selected.length === 5 && x >= 0.375 * canvas.width && x < 0.625 * canvas.width && y >= 0.85 * canvas.height && y < 0.95 * canvas.height) {
+            if (selected.length === 5 && x >= 0.37 * canvas.width && x < 0.63 * canvas.width && y >= 0.85 * canvas.height && y < 0.95 * canvas.height) {
                 socket.send(JSON.stringify({ event: "towerInit", t1: selected[0], t2: selected[1], t3: selected[2], t4: selected[3], t5: selected[4] }));
                 game.state = 1;
+            }
+            if (x >= 0.63 * canvas.width && x < 0.66 * canvas.width && y >= 0.87 * canvas.height && y < 0.93 * canvas.height) {
+                selected.splice(0, selected.length);
+                while (selected.length < 5) {
+                    const add = Math.floor(Math.random() * 10);
+                    if (!selected.includes(add))
+                        selected.push(add);
+                }
             }
             break;
         case 1:
@@ -510,6 +525,12 @@ canvas.addEventListener("click", (event) => {
         default:
             break;
     }
+});
+canvas.addEventListener("mousemove", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    rdmhover = x >= 0.63 * canvas.width && x < 0.66 * canvas.width && y >= 0.87 * canvas.height && y < 0.93 * canvas.height;
 });
 socket.onclose = function () { return console.log("Disconnected"); };
 export {};
