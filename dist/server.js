@@ -209,7 +209,8 @@ function enemyLoop(player1, player2, game) {
         if (enemy.hp <= 0) {
             enemy.alive = false;
             player1.mana += 10;
-            player2.addEnemy(enemyGenerator(game));
+            if (enemy.damages != 2)
+                player2.addEnemy(enemyGenerator(game));
         }
     });
     player1.clearDeadEnemies();
@@ -223,16 +224,12 @@ function enemyLoop(player1, player2, game) {
         if (enemy.hp <= 0) {
             enemy.alive = false;
             player2.mana += 10;
-            player1.addEnemy(enemyGenerator(game));
+            if (enemy.damages != 2)
+                player1.addEnemy(enemyGenerator(game));
         }
     });
     player2.clearDeadEnemies();
 }
-// function bossLoop(player1: Player, player2: Player) {
-//     let
-//     player1.enemies.splice(0, player1.enemies.length);
-//     player2.enemies.splice(0, player2.enemies.length);
-// }
 function gameLoop(player1, player2, game) {
     if (game.start) {
         if (game.timer.timeLeft !== 0) {
@@ -241,10 +238,12 @@ function gameLoop(player1, player2, game) {
         }
         else {
             if (!game.boss) {
+                const p1Board = player1.enemies.length;
+                const p2Board = player2.enemies.length;
                 player1.enemies.splice(0, player1.enemies.length);
                 player2.enemies.splice(0, player2.enemies.length);
-                player1.enemies.push(new Enemy("bslime", 1000, 1, 2)); // Boss here
-                player2.enemies.push(new Enemy("bslime", 1000, 1, 2));
+                player1.enemies.push(new Enemy("kslime", 1000 + 100 * p1Board, 1, 2)); // Boss here
+                player2.enemies.push(new Enemy("kslime", 1000 + 100 * p2Board, 1, 2));
             }
             enemyLoop(player1, player2, game);
             if (player1.enemies.length === 0 && player2.enemies.length === 0) {

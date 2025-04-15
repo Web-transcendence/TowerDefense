@@ -137,7 +137,8 @@ var Assets = /** @class */ (function () {
             "yslime0.png", "yslime1.png",
             "rslime0.png", "rslime1.png",
             "pslime0.png", "pslime1.png",
-            "dslime0.png", "dslime1.png"];
+            "dslime0.png", "dslime1.png",
+            "kslime0.png", "kslime1.png"];
         for (var _i = 0, imageNames_1 = imageNames; _i < imageNames_1.length; _i++) {
             var name_1 = imageNames_1[_i];
             var key = name_1.split(".")[0];
@@ -267,11 +268,11 @@ function enemyPosy(pos) {
 function drawEnemies() {
     player1.enemies.forEach(function (enemy) {
         if (enemy.pos < 480)
-            ctx.drawImage(assets.getAnImage(enemy.type), enemyPosx(enemy.pos, 1) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.drawImage(assets.getAnImage(enemy.type), enemyPosx(enemy.pos, 1) - tile * 0.5, enemyPosy(enemy.pos) - tile * 0.5, tile, tile);
         else {
             ctx.save();
             ctx.scale(-1, 1);
-            ctx.drawImage(assets.getAnImage(enemy.type), -1 * (enemyPosx(enemy.pos, 1) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.drawImage(assets.getAnImage(enemy.type), -1 * (enemyPosx(enemy.pos, 1) - tile * 0.5) - 70, enemyPosy(enemy.pos) - tile * 0.5, tile, tile);
             ctx.restore();
         }
         ctx.fillStyle = "#eaeaea";
@@ -281,11 +282,11 @@ function drawEnemies() {
     });
     player2.enemies.forEach(function (enemy) {
         if (enemy.pos >= 480)
-            ctx.drawImage(assets.getAnImage(enemy.type), enemyPosx(enemy.pos, 2) - 35, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.drawImage(assets.getAnImage(enemy.type), enemyPosx(enemy.pos, 2) - tile * 0.5, enemyPosy(enemy.pos) - tile * 0.5, tile, tile);
         else {
             ctx.save();
             ctx.scale(-1, 1);
-            ctx.drawImage(assets.getAnImage(enemy.type), -1 * (enemyPosx(enemy.pos, 2) - 35) - 70, enemyPosy(enemy.pos) - 35, 70, 70);
+            ctx.drawImage(assets.getAnImage(enemy.type), -1 * (enemyPosx(enemy.pos, 2) - tile * 0.5) - 70, enemyPosy(enemy.pos) - tile * 0.5, tile, tile);
             ctx.restore();
         }
         ctx.fillStyle = "#eaeaea";
