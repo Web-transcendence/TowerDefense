@@ -67,6 +67,7 @@ var Game = /** @class */ (function () {
         this.timer = 4;
         this.start = false;
         this.state = 0;
+        this.boss = false;
     }
     return Game;
 }());
@@ -178,24 +179,6 @@ function timeTostring(timer) {
     var seconds = timer % 60;
     return ("".concat(minutes, ":").concat(seconds.toString().padStart(2, '0')));
 }
-function drawGrid() {
-    var sq = true;
-    for (var i = 0; i < canvas.width; i += tile) {
-        var j = 0;
-        sq = !sq;
-        for (; j < canvas.height; j += tile) {
-            if (sq) {
-                ctx.fillStyle = "#364153";
-                sq = false;
-            }
-            else {
-                ctx.fillStyle = "#101828";
-                sq = true;
-            }
-            ctx.fillRect(i, j, tile, tile);
-        }
-    }
-}
 function drawTimer() {
     switch (nmap) {
         case 4:
@@ -218,13 +201,19 @@ function drawTimer() {
             break;
     }
     ctx.strokeStyle = "#0d0d0d";
-    ctx.lineWidth = 8;
-    ctx.font = "40px 'Press Start 2P'";
+    ctx.lineWidth = tile * 0.1;
+    ctx.font = "".concat(tile * 0.5, "px 'Press Start 2P'");
     ctx.textAlign = "center";
     var timer = game.timer;
     if (game.start) {
-        ctx.strokeText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
-        ctx.fillText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+        if (!game.boss) {
+            ctx.strokeText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+            ctx.fillText(timeTostring(timer), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+        }
+        else {
+            ctx.strokeText("Boss", canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+            ctx.fillText("Boss", canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
+        }
     }
     else if (timer > 1) {
         ctx.strokeText(timeTostring(timer - 1), canvas.width * 0.5, canvas.height * 0.5 + tile * 0.25);
@@ -393,6 +382,24 @@ function drawTowers() {
         ctx.drawImage(assets.getImage("".concat(tower.tower.type).concat(getTowerLevel(tower.tower, 2))), tile * (9.75 + tower.pos % 4), tile * (1.5 + Math.floor(tower.pos / 4)), tile * 1.4, tile * 1.4);
     });
 }
+function drawGrid() {
+    var sq = true;
+    for (var i = 0; i < canvas.width; i += tile) {
+        var j = 0;
+        sq = !sq;
+        for (; j < canvas.height; j += tile) {
+            if (sq) {
+                ctx.fillStyle = "#364153";
+                sq = false;
+            }
+            else {
+                ctx.fillStyle = "#101828";
+                sq = true;
+            }
+            ctx.fillRect(i, j, tile, tile);
+        }
+    }
+}
 function drawTemplate() {
     ctx.fillStyle = "red";
     ctx.fillRect(0, tile * 0.5, tile * 6.5, tile * 8);
@@ -414,6 +421,32 @@ function drawGame() {
     drawButtons();
     drawTowers();
 }
+// EndScreen
+function drawEndScreen() {
+    ctx.drawImage(assets.getImage("map".concat(nmap)), 0, 0, canvas.width, canvas.height);
+    drawEnemies();
+    drawButtons();
+    drawTowers();
+    ctx.strokeStyle = "#0d0d0d";
+    ctx.lineWidth = tile * 0.2;
+    ctx.font = "".concat(tile, "px 'Press Start 2P'");
+    ctx.textAlign = "center";
+    if (player1.hp > player2.hp) {
+        ctx.fillStyle = "#17b645";
+        ctx.strokeText("You win!", canvas.width * 0.5, canvas.height * 0.5);
+        ctx.fillText("You win!", canvas.width * 0.5, canvas.height * 0.5);
+    }
+    else if (player2.hp > player1.hp) {
+        ctx.fillStyle = "#ab1e00";
+        ctx.strokeText("You lose!", canvas.width * 0.5, canvas.height * 0.5);
+        ctx.fillText("You lose!", canvas.width * 0.5, canvas.height * 0.5);
+    }
+    else {
+        ctx.fillStyle = "#0075ab";
+        ctx.strokeText("Draw!", canvas.width * 0.5, canvas.height * 0.5);
+        ctx.fillText("Draw!", canvas.width * 0.5, canvas.height * 0.5);
+    }
+}
 // Main
 function mainLoop() {
     switch (game.state) {
@@ -422,6 +455,9 @@ function mainLoop() {
             break;
         case 1:
             drawGame();
+            break;
+        case 2:
+            drawEndScreen();
             break;
         default:
             break;
@@ -438,6 +474,9 @@ socket.onmessage = function (event) {
             game.level = data.level;
             game.timer = data.timer;
             game.start = data.start;
+            if (data.state === 2)
+                game.state = 2;
+            game.boss = data.boss;
             break;
         case "Player 1":
             player1.hp = data.hp;

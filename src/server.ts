@@ -26,7 +26,7 @@ class Game {
         this.timer = timer;
     }
     toJSON() {
-        return {class: "Game", level: this.level, timer: this.timer.timeLeft, start: this.start};
+        return {class: "Game", level: this.level, timer: this.timer.timeLeft, start: this.start, state: this.state, boss: this.boss};
     }
 }
 
@@ -136,8 +136,7 @@ class Tower {
                     break;
                 }
             }
-        }
-        else {
+        } else {
             enemies.forEach(enemy => {
                 if (enemy.alive && enemy.pos <= maxpos + this.area && enemy.pos >= maxpos - this.area) {
                     enemy.hp -= this.damages * rank;
@@ -209,6 +208,12 @@ function loadEnemies(filePath: string): Enemy[][] {
 const enemies: Enemy[][] = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
 const allTowers: Tower[] = loadTowers(path.join(__dirname, "../resources/towers.json"));
 
+function checkGameOver(player1: Player, player2: Player, game: Game) {
+    if (player1.hp <= 0 || player2.hp <= 0) {
+        game.state = 2;
+    }
+}
+
 function enemyGenerator(game: Game) {
     let wave: number;
     if (game.level != 2)
@@ -225,6 +230,8 @@ function enemySpawner(player1: Player, player2: Player, game: Game) {
         player1.addEnemy(enemyGenerator(game));
         player2.addEnemy(enemyGenerator(game));
     }
+    if (game.state !== 1)
+        return ;
     setTimeout(() => enemySpawner(player1, player2, game), 1000);
 }
 
@@ -238,9 +245,11 @@ function enemyLoop (player1: Player, player2: Player, game: Game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
-            player1.mana += 10;
-            if (enemy.damages != 2)
+            if (enemy.damages != 2) {
+                player1.mana += 100;
                 player2.addEnemy(enemyGenerator(game));
+            } else
+                player1.mana += 10;
         }
     });
     player1.clearDeadEnemies();
@@ -253,12 +262,15 @@ function enemyLoop (player1: Player, player2: Player, game: Game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
-            player2.mana += 10;
-            if (enemy.damages != 2)
+            if (enemy.damages != 2) {
+                player2.mana += 100;
                 player1.addEnemy(enemyGenerator(game));
+            } else
+                player2.mana += 10;
         }
     });
     player2.clearDeadEnemies();
+    checkGameOver(player1, player2, game);
 }
 
 function gameLoop(player1: Player, player2: Player, game: Game) {
@@ -286,6 +298,8 @@ function gameLoop(player1: Player, player2: Player, game: Game) {
             game.boss = true;
         }
     }
+    if (game.state !== 1)
+        return ;
     setTimeout(() => gameLoop(player1, player2, game), 10);
 }
 
@@ -338,9 +352,9 @@ wss.on("connection", (ws) => {
                 case 0:
                     player.upTowerRank(data.button);
                     break;
-                case -1:
-                    game.state = 1;
-                    break;
+                //case -1:
+                //    game.state = 1;
+                //    break;
                 case -2:
                     player1.mana += 100;
                     player2.mana += 100;

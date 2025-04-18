@@ -22,7 +22,7 @@ class Game {
         this.timer = timer;
     }
     toJSON() {
-        return { class: "Game", level: this.level, timer: this.timer.timeLeft, start: this.start };
+        return { class: "Game", level: this.level, timer: this.timer.timeLeft, start: this.start, state: this.state, boss: this.boss };
     }
 }
 class Timer {
@@ -181,6 +181,11 @@ function loadEnemies(filePath) {
 }
 const enemies = loadEnemies(path.join(__dirname, "../resources/enemies.json"));
 const allTowers = loadTowers(path.join(__dirname, "../resources/towers.json"));
+function checkGameOver(player1, player2, game) {
+    if (player1.hp <= 0 || player2.hp <= 0) {
+        game.state = 2;
+    }
+}
 function enemyGenerator(game) {
     let wave;
     if (game.level != 2)
@@ -196,6 +201,8 @@ function enemySpawner(player1, player2, game) {
         player1.addEnemy(enemyGenerator(game));
         player2.addEnemy(enemyGenerator(game));
     }
+    if (game.state !== 1)
+        return;
     setTimeout(() => enemySpawner(player1, player2, game), 1000);
 }
 function enemyLoop(player1, player2, game) {
@@ -208,9 +215,12 @@ function enemyLoop(player1, player2, game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
-            player1.mana += 10;
-            if (enemy.damages != 2)
+            if (enemy.damages != 2) {
+                player1.mana += 100;
                 player2.addEnemy(enemyGenerator(game));
+            }
+            else
+                player1.mana += 10;
         }
     });
     player1.clearDeadEnemies();
@@ -223,12 +233,16 @@ function enemyLoop(player1, player2, game) {
         }
         if (enemy.hp <= 0) {
             enemy.alive = false;
-            player2.mana += 10;
-            if (enemy.damages != 2)
+            if (enemy.damages != 2) {
+                player2.mana += 100;
                 player1.addEnemy(enemyGenerator(game));
+            }
+            else
+                player2.mana += 10;
         }
     });
     player2.clearDeadEnemies();
+    checkGameOver(player1, player2, game);
 }
 function gameLoop(player1, player2, game) {
     if (game.start) {
@@ -256,6 +270,8 @@ function gameLoop(player1, player2, game) {
             game.boss = true;
         }
     }
+    if (game.state !== 1)
+        return;
     setTimeout(() => gameLoop(player1, player2, game), 10);
 }
 function gameInit(player1, player2, game) {
@@ -304,9 +320,9 @@ wss.on("connection", (ws) => {
                 case 0:
                     player.upTowerRank(data.button);
                     break;
-                case -1:
-                    game.state = 1;
-                    break;
+                //case -1:
+                //    game.state = 1;
+                //    break;
                 case -2:
                     player1.mana += 100;
                     player2.mana += 100;
