@@ -1,5 +1,6 @@
-import express from "express";
-import { WebSocketServer } from "ws";
+import Fastify from 'fastify';
+import fastifyWebsocket from '@fastify/websocket';
+import { WebSocket } from "ws";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -8,13 +9,8 @@ import * as fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
 const inputSchema = z.object({ player: z.number(), button: z.number() });
 const towerSchema = z.object({ t1: z.number(), t2: z.number(), t3: z.number(), t4: z.number(), t5: z.number() });
-
-app.use(express.static(path.join(__dirname, "../public")));
 
 class Game {
     level: number = 0;
@@ -60,8 +56,10 @@ class Player {
     enemies: Enemy[] = [];
     deck: Tower[] = [];
     board: Board[] = [];
-    constructor(name: string) {
+    socket: WebSocket;
+    constructor(name: string, ws: WebSocket) {
         this.name = name;
+        this.socket = ws;
         for (let i = 0; i < 5; i++) {
             this.deck.push(allTowers[i].clone());
         }
@@ -395,6 +393,120 @@ wss.on("connection", (ws) => {
     });
 });
 
-server.listen(8080, () => {
-    console.log("Server running on http://localhost:8080");
+
+class Room {
+    id: number;
+    players: Player[] = [];
+    constructor (id: number, player: Player) {
+        this.id = id;
+        this.players.push(player);
+    }
+}
+
+let rooms: Room[] = [];
+
+function joinRoom(player: Player) {
+    let id: number = -1;
+    let i : number = 0;
+    for (; i < rooms.length; i++) {
+        if (rooms[i].players.length === 1) {
+            rooms[i].players.push(player);
+            id = rooms[i].id;
+            break ;
+        }
+    }
+    if (id === -1) {
+        let room = new Room(rooms.length, player);
+        rooms.push(room);
+        return ;
+    }
+    let game = new Game(new Timer(0, 4));
+    const intervalId = setInterval(() => {
+        let i = rooms.findIndex(room => room.id === id);
+        if (i === -1) {
+            clearInterval(intervalId);
+            return;
+        }
+        rooms[i].players[0].ws.send(JSON.stringify(rooms[i].players[0]));
+        rooms[i].players[0].ws.send(JSON.stringify(rooms[i].players[1]));
+        rooms[i].players[0].ws.send(JSON.stringify(game));
+        rooms[i].players[1].ws.send(JSON.stringify(rooms[i].players[0].paddle));
+        rooms[i].players[1].ws.send(JSON.stringify(rooms[i].players[1].paddle));
+        rooms[i].players[1].ws.send(JSON.stringify(game));
+    }, 10);
+
+}
+
+const fastify = Fastify({
+    logger: true
+});
+
+fastify.register(fastifyWebsocket);
+
+fastify.register(async function (fastify) {
+    fastify.get('/ws', { websocket: true }, (socket, req) => {
+        console.log("Client connected");
+        let player = new Player("Player 1", socket);
+        allTowers.forEach((tower: Tower) => {
+            socket.send(JSON.stringify(tower));
+        });
+        socket.on("message", (message) => {
+            const msg = JSON.parse(message.toString());
+            if (msg.event === "click" || msg.event === "keyDown") {
+                const {data, success, error} = inputSchema.safeParse(msg);
+                if (!success || !data) {
+                    console.log(error);
+                    return ;
+                }
+                const player = data.player === 1 ? player1 : player2;
+                switch (data.button) {
+                    case 5:
+                        player.spawnTower();
+                        break;
+                    case 4:
+                    case 3:
+                    case 2:
+                    case 1:
+                    case 0:
+                        player.upTowerRank(data.button);
+                        break;
+                    //case -1:
+                    //    game.state = 1;
+                    //    break;
+                    case -2:
+                        player1.mana += 100;
+                        player2.mana += 100;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (msg.event === "towerInit") {
+                const {data, success, error} = towerSchema.safeParse(JSON.parse(message.toString()));
+                if (!success || !data) {
+                    console.log(error);
+                    return;
+                }
+                player1.deck.splice(0, player1.deck.length);
+                player1.deck.push(allTowers[data.t1].clone());
+                player1.deck.push(allTowers[data.t2].clone());
+                player1.deck.push(allTowers[data.t3].clone());
+                player1.deck.push(allTowers[data.t4].clone());
+                player1.deck.push(allTowers[data.t5].clone());
+                game.state = 1;
+            }
+        });
+        socket.on("close", () => {
+            console.log("Client disconnected");
+        });
+        joinRoom(player);
+    });
+});
+
+fastify.listen({ port: 8080, host: '0.0.0.0' }, (err, adrr) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.log(`server running on ${adrr}`)
 });
