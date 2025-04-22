@@ -79,7 +79,7 @@ class Player {
         }
         const type = Math.floor(Math.random() * this.deck.length);
         const newTower = this.deck[type].clone();
-        setInterval(() => newTower.attack(this.enemies, this.deck[type].level), 10000 / newTower.speed);
+        newTower.startAttack(this);
         this.board.push(new Board(pos, newTower));
         console.log(`${this.name}: Tower ${this.deck[type].type} spawned at position ${pos}`);
     }
@@ -96,6 +96,7 @@ class Player {
 class Tower {
     constructor(type, speed, damages, area, effect) {
         this.level = 1;
+        this.intervalId = null;
         this.type = type;
         this.speed = speed;
         this.damages = damages;
@@ -133,6 +134,18 @@ class Tower {
                     }
                 }
             });
+        }
+    }
+    startAttack(player) {
+        this.intervalId = setInterval(() => {
+            const i = player.deck.findIndex(tower => tower.type === this.type);
+            this.attack(player.enemies, player.deck[i].level);
+        }, 10000 / this.speed);
+    }
+    stopAttack() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
         }
     }
     clone() {
@@ -184,6 +197,12 @@ const allTowers = loadTowers(path.join(__dirname, "../resources/towers.json"));
 function checkGameOver(player1, player2, game) {
     if (player1.hp <= 0 || player2.hp <= 0) {
         game.state = 2;
+        player1.board.forEach((board) => {
+            board.tower.stopAttack();
+        });
+        player2.board.forEach((board) => {
+            board.tower.stopAttack();
+        });
     }
 }
 function enemyGenerator(game) {
@@ -216,11 +235,11 @@ function enemyLoop(player1, player2, game) {
         if (enemy.hp <= 0) {
             enemy.alive = false;
             if (enemy.damages != 2) {
-                player1.mana += 100;
+                player1.mana += 10;
                 player2.addEnemy(enemyGenerator(game));
             }
             else
-                player1.mana += 10;
+                player1.mana += 100;
         }
     });
     player1.clearDeadEnemies();
@@ -234,11 +253,11 @@ function enemyLoop(player1, player2, game) {
         if (enemy.hp <= 0) {
             enemy.alive = false;
             if (enemy.damages != 2) {
-                player2.mana += 100;
+                player2.mana += 10;
                 player1.addEnemy(enemyGenerator(game));
             }
             else
-                player2.mana += 10;
+                player2.mana += 100;
         }
     });
     player2.clearDeadEnemies();
@@ -320,9 +339,6 @@ wss.on("connection", (ws) => {
                 case 0:
                     player.upTowerRank(data.button);
                     break;
-                //case -1:
-                //    game.state = 1;
-                //    break;
                 case -2:
                     player1.mana += 100;
                     player2.mana += 100;
