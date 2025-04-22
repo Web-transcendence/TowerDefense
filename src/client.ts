@@ -67,6 +67,21 @@ function drawMenu() {
 
 // Game classes and functions
 
+class Bullet {
+    type: string;
+    rank: number;
+    pos: number;
+    target: number;
+    travel: number;
+    constructor(type: string, rank: number, pos: number, target: number, travel: number) {
+        this.type = type;
+        this.rank = rank;
+        this.pos = pos;
+        this.target = target;
+        this.travel = travel;
+    }
+}
+
 class Game {
     level: number = 0;
     timer: number = 4;
@@ -79,12 +94,10 @@ class Enemy {
     type: string;
     hp: number;
     pos: number;
-    alive: boolean;
-    constructor(type: string, hp: number, pos: number, alive: boolean) {
+    constructor(type: string, hp: number, pos: number) {
         this.type = type;
         this.hp = hp;
         this.pos = pos;
-        this.alive = alive;
     }
 }
 
@@ -96,11 +109,15 @@ class Player {
     enemies: Enemy[] = [];
     deck: Tower[] = [];
     board: Board[] = [];
+    bullets: Bullet[] = [];
     constructor(name: string) {
         this.name = name;
     }
     addEnemy(enemy: Enemy) {
         this.enemies.push(enemy);
+    }
+    addBullet(bullet: Bullet) {
+        this.bullets.push(bullet);
     }
 }
 
@@ -111,6 +128,7 @@ class Tower {
     area: number;
     effect: string;
     level: number;
+    pos: number = 0;
     constructor(type: string, speed: number, damages: number, area: number, effect: string, level: number) {
         this.type = type;
         this.speed = speed;
@@ -190,11 +208,16 @@ const nmap = Math.floor(Math.random() * 5);
 let allTowers : Tower[] = [];
 let selected : number[] = [];
 let rdmhover = false;
+let bullets: Bullet[] = [];
 
 function timeTostring(timer: number) {
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
     return (`${minutes}:${seconds.toString().padStart(2, '0')}`);
+}
+
+function drawBullets() {
+    //console.log(bullets);
 }
 
 function drawTimer() {
@@ -445,6 +468,7 @@ function drawGame() {
     drawEnemies();
     drawButtons();
     drawTowers();
+    drawBullets();
 }
 
 // EndScreen
@@ -517,7 +541,8 @@ socket.onmessage = function (event) {
             player1.cost = data.cost;
             player1.enemies.splice(0, player1.enemies.length);
             data.enemies.forEach((enemy: Enemy) => {
-                player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
+                if (enemy)
+                    player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos));
             });
             player1.deck.splice(0, player1.deck.length);
             data.deck.forEach((tower: Tower) => {
@@ -525,8 +550,13 @@ socket.onmessage = function (event) {
             });
             for (i = player1.board.length; i < data.board.length; i++) {
                 board = data.board[i];
-                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)))
+                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             }
+            player1.bullets.splice(0, player1.bullets.length);
+            data.bullets.forEach((bullet: Bullet) => {
+                if (bullet)
+                    player1.bullets.push(new Bullet(bullet.type, bullet.rank, bullet.pos, bullet.target, bullet.travel));
+            });
             break;
         case "Player 2":
             player2.hp = data.hp;
@@ -534,7 +564,8 @@ socket.onmessage = function (event) {
             player2.cost = data.cost;
             player2.enemies.splice(0, player2.enemies.length);
             data.enemies.forEach((enemy: Enemy) => {
-                player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
+                if (enemy)
+                    player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos));
             });
             player2.deck.splice(0, player2.deck.length);
             data.deck.forEach((tower: Tower) => {
@@ -542,8 +573,13 @@ socket.onmessage = function (event) {
             });
             for (i = player2.board.length; i < data.board.length; i++) {
                 board = data.board[i];
-                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)))
+                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             }
+            player2.bullets.splice(0, player1.bullets.length);
+            data.bullets.forEach((bullet: Bullet) => {
+                if (bullet)
+                    player2.bullets.push(new Bullet(bullet.type, bullet.rank, bullet.pos, bullet.target, bullet.travel));
+            });
             break;
         case "Tower":
             allTowers.push(new Tower(data.type, data.speed, data.damages, data.area, data.effect, data.level));

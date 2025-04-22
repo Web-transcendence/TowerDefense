@@ -30,6 +30,25 @@ class Game {
     }
 }
 
+class Bullet {
+    type: string;
+    rank: number;
+    pos: number;
+    target: Enemy;
+    travel: number = 0;
+    state: boolean = true;
+    constructor(type: string, rank: number, pos: number, target: Enemy) {
+        this.type = type;
+        this.rank = rank;
+        this.pos = pos;
+        this.target = target;
+    }
+    toJSON() {
+        if (this.target && this.state)
+            return {type: this.type, rank: this.rank, pos: this.pos, target: this.target.pos, travel: this.travel};
+    }
+}
+
 class Timer {
     timeLeft: number;
     intervalId: ReturnType<typeof setInterval> | null = null;
@@ -60,6 +79,7 @@ class Player {
     enemies: Enemy[] = [];
     deck: Tower[] = [];
     board: Board[] = [];
+    bullets: Bullet[] = [];
     constructor(name: string) {
         this.name = name;
         for (let i = 0; i < 5; i++) {
@@ -71,6 +91,12 @@ class Player {
     }
     clearDeadEnemies() {
         this.enemies = this.enemies.filter(enemy => enemy.alive);
+    }
+    addBullet(bullet: Bullet) {
+        this.bullets.push(bullet);
+    }
+    clearBullet() {
+        this.bullets = this.bullets.filter(bullet => bullet.state);
     }
     spawnTower() {
         if (this.mana < this.cost || this.board.length >= 20) {
@@ -87,7 +113,7 @@ class Player {
        }
        const type = Math.floor(Math.random() * this.deck.length);
        const newTower = this.deck[type].clone();
-       newTower.startAttack(this);
+       newTower.startAttack(this, pos);
        this.board.push(new Board(pos, newTower));
        console.log(`${this.name}: Tower ${this.deck[type].type} spawned at position ${pos}`);
     }
@@ -98,7 +124,7 @@ class Player {
         }
     }
     toJSON() {
-        return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board};
+        return {class: this.name, hp: this.hp, mana: this.mana, cost: this.cost, enemies: this.enemies, deck: this.deck, board: this.board, bullets: this.bullets};
     }
 }
 
@@ -117,9 +143,10 @@ class Tower {
         this.area = area;
         this.effect = effect;
     }
-    attack (enemies: Enemy[], rank: number) {
+    attack (player: Player, enemies: Enemy[], rank: number, pos: number) {
         let maxpos = -1;
-        for (let i = 0; i < enemies.length; i++) {
+        let i: number;
+        for (i = 0; i < enemies.length; i++) {
             if (enemies[i].alive && enemies[i].pos > maxpos) {
                 maxpos = enemies[i].pos;
             }
@@ -129,12 +156,13 @@ class Tower {
         if (this.area === 0) {
             for (let i = 0; i < enemies.length; i++) {
                 if (enemies[i].alive && enemies[i].pos === maxpos) {
-                    enemies[i].hp -= this.damages * rank;
-                    if (this.effect === "stun") {
-                        enemies[i].stun = true;
-                        setTimeout(() => {enemies[i].stun = false;}, 500);
-                    }
-                    break;
+                  enemies[i].hp -= this.damages * rank;
+                  if (this.effect === "stun") {
+                      enemies[i].stun = true;
+                      setTimeout(() => {enemies[i].stun = false;}, 500);
+                  }
+                  player.addBullet(new Bullet(this.type, rank, pos, enemies[i]));
+                  break;
                 }
             }
         } else {
@@ -145,14 +173,16 @@ class Tower {
                         enemy.slow = 0.6;
                         setTimeout(() => {enemy.slow = 1;}, 1000);
                     }
+                    player.addBullet(new Bullet(this.type, rank, pos, enemy));
                 }
             });
         }
+        player.addBullet(new Bullet(this.type, rank, pos, enemies[i]));
     }
-    startAttack(player: Player) {
+    startAttack(player: Player, pos: number) {
         this.intervalId = setInterval(() => {
             const i = player.deck.findIndex(tower => tower.type === this.type);
-            this.attack(player.enemies, player.deck[i].level);
+            this.attack(player, player.enemies, player.deck[i].level, pos);
         }, 10000 / this.speed);
     }
     stopAttack() {
@@ -200,7 +230,8 @@ class Enemy {
         return(new Enemy(this.type, this.hp, this.speed, this.damages));
     }
     toJSON() {
-        return {class: "Enemy", type: this.type, hp: this.hp, pos: this.pos, alive: this.alive};
+        if (this.alive)
+            return {class: "Enemy", type: this.type, hp: this.hp, pos: this.pos};
     }
 }
 
@@ -227,9 +258,11 @@ function checkGameOver(player1: Player, player2: Player, game: Game) {
         player1.board.forEach((board: Board) => {
             board.tower.stopAttack()
         });
+        player1.bullets.splice(0, player1.bullets.length);
         player2.board.forEach((board: Board) => {
             board.tower.stopAttack()
         });
+        player2.bullets.splice(0, player2.bullets.length);
     }
 }
 
@@ -252,6 +285,21 @@ function enemySpawner(player1: Player, player2: Player, game: Game) {
     if (game.state !== 1)
         return ;
     setTimeout(() => enemySpawner(player1, player2, game), 1000);
+}
+
+function bulletLoop(player1: Player, player2: Player) {
+    player1.bullets.forEach((bullet: Bullet) => {
+        bullet.travel += 1;
+        if (bullet.travel > 600 || !bullet.target)
+            bullet.state = false;
+    })
+    player1.clearBullet();
+    player2.bullets.forEach((bullet: Bullet) => {
+        bullet.travel += 1;
+        if (bullet.travel > 600 || !bullet.target)
+            bullet.state = false;
+    })
+    player2.clearBullet();
 }
 
 function enemyLoop (player1: Player, player2: Player, game: Game) {
@@ -296,17 +344,21 @@ function gameLoop(player1: Player, player2: Player, game: Game) {
     if (game.start) {
         if (game.timer.timeLeft !== 0) {
             enemyLoop(player1, player2, game);
+            bulletLoop(player1, player2);
             game.boss = false;
         } else {
             if (!game.boss) {
                 const p1Board = player1.enemies.length;
                 const p2Board = player2.enemies.length;
                 player1.enemies.splice(0, player1.enemies.length);
+                player1.bullets.splice(0, player1.bullets.length);
                 player2.enemies.splice(0, player2.enemies.length);
+                player2.bullets.splice(0, player2.bullets.length);
                 player1.enemies.push(new Enemy("kslime", 1000 + 100 * p1Board, 1, 2)); // Boss here
                 player2.enemies.push(new Enemy("kslime", 1000 + 100 * p2Board, 1, 2));
             }
             enemyLoop(player1, player2, game);
+            bulletLoop(player1, player2);
             if (player1.enemies.length === 0 && player2.enemies.length === 0) {
                 game.level = 2;
                 game.timer = new Timer(1, 40);

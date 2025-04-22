@@ -61,6 +61,16 @@ function drawMenu() {
     }
 }
 // Game classes and functions
+var Bullet = /** @class */ (function () {
+    function Bullet(type, rank, pos, target, travel) {
+        this.type = type;
+        this.rank = rank;
+        this.pos = pos;
+        this.target = target;
+        this.travel = travel;
+    }
+    return Bullet;
+}());
 var Game = /** @class */ (function () {
     function Game() {
         this.level = 0;
@@ -72,11 +82,10 @@ var Game = /** @class */ (function () {
     return Game;
 }());
 var Enemy = /** @class */ (function () {
-    function Enemy(type, hp, pos, alive) {
+    function Enemy(type, hp, pos) {
         this.type = type;
         this.hp = hp;
         this.pos = pos;
-        this.alive = alive;
     }
     return Enemy;
 }());
@@ -88,15 +97,20 @@ var Player = /** @class */ (function () {
         this.enemies = [];
         this.deck = [];
         this.board = [];
+        this.bullets = [];
         this.name = name;
     }
     Player.prototype.addEnemy = function (enemy) {
         this.enemies.push(enemy);
     };
+    Player.prototype.addBullet = function (bullet) {
+        this.bullets.push(bullet);
+    };
     return Player;
 }());
 var Tower = /** @class */ (function () {
     function Tower(type, speed, damages, area, effect, level) {
+        this.pos = 0;
         this.type = type;
         this.speed = speed;
         this.damages = damages;
@@ -174,10 +188,14 @@ var nmap = Math.floor(Math.random() * 5);
 var allTowers = [];
 var selected = [];
 var rdmhover = false;
+var bullets = [];
 function timeTostring(timer) {
     var minutes = Math.floor(timer / 60);
     var seconds = timer % 60;
     return ("".concat(minutes, ":").concat(seconds.toString().padStart(2, '0')));
+}
+function drawBullets() {
+    //console.log(bullets);
 }
 function drawTimer() {
     switch (nmap) {
@@ -420,6 +438,7 @@ function drawGame() {
     drawEnemies();
     drawButtons();
     drawTowers();
+    drawBullets();
 }
 // EndScreen
 function drawEndScreen() {
@@ -486,7 +505,8 @@ socket.onmessage = function (event) {
             player1.cost = data.cost;
             player1.enemies.splice(0, player1.enemies.length);
             data.enemies.forEach(function (enemy) {
-                player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
+                if (enemy)
+                    player1.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos));
             });
             player1.deck.splice(0, player1.deck.length);
             data.deck.forEach(function (tower) {
@@ -496,6 +516,11 @@ socket.onmessage = function (event) {
                 board = data.board[i];
                 player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             }
+            player1.bullets.splice(0, player1.bullets.length);
+            data.bullets.forEach(function (bullet) {
+                if (bullet)
+                    player1.bullets.push(new Bullet(bullet.type, bullet.rank, bullet.pos, bullet.target, bullet.travel));
+            });
             break;
         case "Player 2":
             player2.hp = data.hp;
@@ -503,7 +528,8 @@ socket.onmessage = function (event) {
             player2.cost = data.cost;
             player2.enemies.splice(0, player2.enemies.length);
             data.enemies.forEach(function (enemy) {
-                player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos, enemy.alive));
+                if (enemy)
+                    player2.enemies.push(new Enemy(enemy.type, enemy.hp, enemy.pos));
             });
             player2.deck.splice(0, player2.deck.length);
             data.deck.forEach(function (tower) {
@@ -513,6 +539,11 @@ socket.onmessage = function (event) {
                 board = data.board[i];
                 player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             }
+            player2.bullets.splice(0, player1.bullets.length);
+            data.bullets.forEach(function (bullet) {
+                if (bullet)
+                    player2.bullets.push(new Bullet(bullet.type, bullet.rank, bullet.pos, bullet.target, bullet.travel));
+            });
             break;
         case "Tower":
             allTowers.push(new Tower(data.type, data.speed, data.damages, data.area, data.effect, data.level));
