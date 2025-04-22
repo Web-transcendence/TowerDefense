@@ -500,6 +500,8 @@ socket.onopen = function () { return console.log("Connected to server"); };
 
 socket.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    let board: Board;
+    let i: number;
     switch (data.class) {
         case "Game":
             game.level = data.level;
@@ -521,10 +523,10 @@ socket.onmessage = function (event) {
             data.deck.forEach((tower: Tower) => {
                 player1.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
             });
-            player1.board.splice(0, player1.board.length);
-            data.board.forEach((board: Board) => {
-                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
-            });
+            for (i = player1.board.length; i < data.board.length; i++) {
+                board = data.board[i];
+                player1.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)))
+            }
             break;
         case "Player 2":
             player2.hp = data.hp;
@@ -538,10 +540,10 @@ socket.onmessage = function (event) {
             data.deck.forEach((tower: Tower) => {
                 player2.deck.push(new Tower(tower.type, tower.speed, tower.damages, tower.area, tower.effect, tower.level));
             });
-            player2.board.splice(0, player2.board.length);
-            data.board.forEach((board: Board) => {
-                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
-            });
+            for (i = player2.board.length; i < data.board.length; i++) {
+                board = data.board[i];
+                player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)))
+            }
             break;
         case "Tower":
             allTowers.push(new Tower(data.type, data.speed, data.damages, data.area, data.effect, data.level));
