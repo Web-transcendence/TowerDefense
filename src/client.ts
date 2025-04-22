@@ -208,7 +208,6 @@ const nmap = Math.floor(Math.random() * 5);
 let allTowers : Tower[] = [];
 let selected : number[] = [];
 let rdmhover = false;
-let bullets: Bullet[] = [];
 
 function timeTostring(timer: number) {
     const minutes = Math.floor(timer / 60);
@@ -217,7 +216,30 @@ function timeTostring(timer: number) {
 }
 
 function drawBullets() {
-    //console.log(bullets);
+    let tPosx;
+    let tPosy;
+    let ePosx;
+    let ePosy;
+    player1.bullets.forEach(bullet => {
+        tPosx = tile * (1.45 + bullet.pos % 4);
+        tPosy = tile * (2.2 + Math.floor(bullet.pos / 4));
+        ePosx = enemyPosx(bullet.target, 1);
+        ePosy = enemyPosy(bullet.target);
+        ctx.fillStyle = getTowerColor(bullet.type);
+        ctx.beginPath();
+        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 5, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+    player2.bullets.forEach(bullet => {
+        tPosx = tile * (10.45 + bullet.pos % 4);
+        tPosy = tile * (2.2 + Math.floor(bullet.pos / 4));
+        ePosx = enemyPosx(bullet.target, 2);
+        ePosy = enemyPosy(bullet.target);
+        ctx.fillStyle = getTowerColor(bullet.type);
+        ctx.beginPath();
+        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 5, 0, 2 * Math.PI);
+        ctx.fill();
+    });
 }
 
 function drawTimer() {
@@ -575,7 +597,7 @@ socket.onmessage = function (event) {
                 board = data.board[i];
                 player2.board.push(new Board(board.pos, new Tower(board.tower.type, board.tower.speed, board.tower.damages, board.tower.area, board.tower.effect, board.tower.level)));
             }
-            player2.bullets.splice(0, player1.bullets.length);
+            player2.bullets.splice(0, player2.bullets.length);
             data.bullets.forEach((bullet: Bullet) => {
                 if (bullet)
                     player2.bullets.push(new Bullet(bullet.type, bullet.rank, bullet.pos, bullet.target, bullet.travel));
