@@ -372,6 +372,8 @@ function gameLoop(player1: Player, player2: Player, game: Game) {
             bulletLoop(player1, player2);
             if (player1.enemies.length === 0 && player2.enemies.length === 0) {
                 game.level += 1;
+                if (game.level > 2)
+                    game.level = 2;
                 if (game.level < 2)
                     game.timer = new Timer(1, 40);
                 else
