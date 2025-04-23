@@ -129,43 +129,20 @@ class Tower {
         let maxpos = -1;
         let i;
         for (i = 0; i < enemies.length; i++) {
-            if (enemies[i].alive && enemies[i].pos > maxpos) {
+            if (enemies[i].alive && enemies[i].ihp > 0 && enemies[i].pos > maxpos) {
                 maxpos = enemies[i].pos;
             }
         }
         if (maxpos === -1)
             return;
         for (let i = 0; i < enemies.length; i++) {
-            if (enemies[i].alive && enemies[i].pos >= maxpos - this.area && enemies[i].pos <= maxpos + this.area) {
+            if (enemies[i].alive && enemies[i].pos >= maxpos - this.area && enemies[i].pos <= maxpos + this.area && enemies[i].ihp > 0) {
                 player.addBullet(new Bullet(this.type, rank, pos, enemies[i], this));
+                enemies[i].ihp -= this.damages * rank;
                 if (this.area === 0)
                     break;
             }
         }
-        /*if (this.area === 0) {
-            for (let i = 0; i < enemies.length; i++) {
-                if (enemies[i].alive && enemies[i].pos === maxpos) {
-                  enemies[i].hp -= this.damages * rank;
-                  if (this.effect === "stun") {
-                      enemies[i].stun = true;
-                      setTimeout(() => {enemies[i].stun = false;}, 500);
-                  }
-                  player.addBullet(new Bullet(this.type, rank, pos, enemies[i], this));
-                  break;
-                }
-            }
-        } else {
-            enemies.forEach(enemy => {
-                if (enemy.alive && enemy.pos <= maxpos + this.area && enemy.pos >= maxpos - this.area) {
-                    enemy.hp -= this.damages * rank;
-                    if (this.effect === "slow") {
-                        enemy.slow = 0.6;
-                        setTimeout(() => {enemy.slow = 1;}, 1000);
-                    }
-                    player.addBullet(new Bullet(this.type, rank, pos, enemy, this));
-                }
-            });
-        }*/
     }
     startAttack(player, pos) {
         this.intervalId = setInterval(() => {
@@ -203,6 +180,7 @@ class Enemy {
         this.alive = true;
         this.type = type;
         this.hp = hp;
+        this.ihp = hp;
         this.speed = speed;
         this.damages = damages;
     }
@@ -358,8 +336,11 @@ function gameLoop(player1, player2, game) {
             enemyLoop(player1, player2, game);
             bulletLoop(player1, player2);
             if (player1.enemies.length === 0 && player2.enemies.length === 0) {
-                game.level = 2;
-                game.timer = new Timer(1, 40);
+                game.level += 1;
+                if (game.level < 2)
+                    game.timer = new Timer(1, 40);
+                else
+                    game.timer = new Timer(6, 0);
                 game.timer.start();
                 player1.enemies.push(enemyGenerator(game));
                 player2.enemies.push(enemyGenerator(game));
