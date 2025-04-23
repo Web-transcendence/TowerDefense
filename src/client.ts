@@ -227,7 +227,7 @@ function drawBullets() {
         ePosy = enemyPosy(bullet.target);
         ctx.fillStyle = getTowerColor(bullet.type);
         ctx.beginPath();
-        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 5, 0, 2 * Math.PI);
+        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 4, 0, 2 * Math.PI);
         ctx.fill();
     });
     player2.bullets.forEach(bullet => {
@@ -237,7 +237,7 @@ function drawBullets() {
         ePosy = enemyPosy(bullet.target);
         ctx.fillStyle = getTowerColor(bullet.type);
         ctx.beginPath();
-        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 5, 0, 2 * Math.PI);
+        ctx.arc(tPosx + (ePosx - tPosx) * bullet.travel / 100, tPosy + (ePosy - tPosy) * bullet.travel / 100, bullet.rank * 4, 0, 2 * Math.PI);
         ctx.fill();
     });
 }
